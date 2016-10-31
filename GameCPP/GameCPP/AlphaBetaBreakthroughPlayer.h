@@ -31,7 +31,7 @@ public:
 	* @param col the column
 	* @return the assigned values
 	*/
-	int diagonalPath(BreakthroughState brd, int row, int col);
+	int diagonalPath(BreakthroughState & brd, int row, int col);
 
 	/**
 	* Computes the number of columns where the player
@@ -39,7 +39,7 @@ public:
 	* @param brd the game state
 	* @return the number of empty columns on the board
 	*/
-	int numberOfEmptyColumns(BreakthroughState brd);
+	int numberOfEmptyColumns(BreakthroughState & brd);
 
 	/**
 	* Assigns a score for a piece that is threatened
@@ -48,7 +48,7 @@ public:
 	* @param col the column
 	* @return the value assigned
 	*/
-	int threatPosition(BreakthroughState brd, int row, int col);
+	int threatPosition(BreakthroughState & brd, int row, int col);
 
 	/**
 	* Assigns a score for a piece with a defensive posture
@@ -57,7 +57,7 @@ public:
 	* @param col the column
 	* @return the value assigned
 	*/
-	int defensivePosition(BreakthroughState brd, int row, int col);
+	int defensivePosition(BreakthroughState & brd, int row, int col);
 
 	/**
 	* Assigns a score for a piece that is close to ending the game
@@ -66,7 +66,7 @@ public:
 	* @param col the column
 	* @return the value assigned
 	*/
-	int pieceNearEndPosition(BreakthroughState brd, int row, int col);
+	int pieceNearEndPosition(BreakthroughState & brd, int row, int col);
 
 	/**
 	* Computes a score for a piece on the board
@@ -75,14 +75,14 @@ public:
 	* @param col the column
 	* @return the value assigned to that piece
 	*/
-	int evaluatePiece(BreakthroughState brd, int row, int col);
+	int evaluatePiece(BreakthroughState & brd, int row, int col);
 
 	/**
 	* Computes a score for the state
 	* @param brd the game state
 	* @return the value assigned to the current state of the board
 	*/
-	int evaluateBoard(BreakthroughState brd);
+	int evaluateBoard(BreakthroughState & brd);
 
 	/**
 	* Computes the best value of a position 

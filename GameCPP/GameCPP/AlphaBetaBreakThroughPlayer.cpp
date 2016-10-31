@@ -7,6 +7,8 @@ GameMove*
 AlphaBetaBreakThroughPlayer::getMove(GameState &state,
 	const std::string &lastMv) {
 	BreakthroughState st = static_cast<BreakthroughState&>(state);
+	//Zmuda's code collects all  possible moves and then chooses
+	//from among them at random
 	std::vector<BreakthroughMove> mvArray;
 	for (int r = 0; r < st.ROWS; r++) {
 		for (int c = 0; c < st.COLS; c++) {
@@ -23,7 +25,7 @@ AlphaBetaBreakThroughPlayer::getMove(GameState &state,
 }
 
 int
-AlphaBetaBreakThroughPlayer::diagonalPath(BreakthroughState brd, int row, int col) {
+AlphaBetaBreakThroughPlayer::diagonalPath(BreakthroughState &brd, int row, int col) {
 	int leftDiagPath = 0; int rightDiagPath = 0; int twoDiagPath = 0;
 	bool isTwoDiagPath = false; bool isLeftDiagPath = false; bool isRightDiagPath = false;
 	// Evaluate piece for home system.
@@ -101,7 +103,7 @@ AlphaBetaBreakThroughPlayer::diagonalPath(BreakthroughState brd, int row, int co
 }
 
 int
-AlphaBetaBreakThroughPlayer::numberOfEmptyColumns(BreakthroughState brd) {
+AlphaBetaBreakThroughPlayer::numberOfEmptyColumns(BreakthroughState &brd) {
 	int counter = brd.COLS;
 	// Count the nubmer of empty columns. Counter starts at the board's number of columns
 	// and assumes all columns are filled. The counter decrements when it finds
@@ -118,7 +120,7 @@ AlphaBetaBreakThroughPlayer::numberOfEmptyColumns(BreakthroughState brd) {
 }
 
 int
-AlphaBetaBreakThroughPlayer::threatPosition(BreakthroughState brd, int row, int col) {
+AlphaBetaBreakThroughPlayer::threatPosition(BreakthroughState &brd, int row, int col) {
 	int threatScore = 0;
 	// Evaluate piece for home system.
 	if (brd.getCurPlayerSym() == brd.HOMESYM) {
@@ -138,7 +140,7 @@ AlphaBetaBreakThroughPlayer::threatPosition(BreakthroughState brd, int row, int 
 }
 
 int
-AlphaBetaBreakThroughPlayer::defensivePosition(BreakthroughState brd, int row, int col) {
+AlphaBetaBreakThroughPlayer::defensivePosition(BreakthroughState &brd, int row, int col) {
 	int threePieceBlockScore = 0; 
 	// Evaluate piece for home system.
 	if (brd.getCurPlayerSym() == brd.HOMESYM) {
@@ -158,7 +160,7 @@ AlphaBetaBreakThroughPlayer::defensivePosition(BreakthroughState brd, int row, i
 }
 
 int
-AlphaBetaBreakThroughPlayer::pieceNearEndPosition(BreakthroughState brd, int row, int col) {
+AlphaBetaBreakThroughPlayer::pieceNearEndPosition(BreakthroughState &brd, int row, int col) {
 	int dangerousPosition = 0;
 	// Evaluate piece for home system.
 	if (brd.getCurPlayerSym() == brd.HOMESYM) {
@@ -174,7 +176,7 @@ AlphaBetaBreakThroughPlayer::pieceNearEndPosition(BreakthroughState brd, int row
 }
 
 int
-AlphaBetaBreakThroughPlayer::evaluatePiece(BreakthroughState brd, int row, int col) {
+AlphaBetaBreakThroughPlayer::evaluatePiece(BreakthroughState &brd, int row, int col) {
 	int score = 0; int distanceScore = 0; int pathScore = 0;
 	int oneStepToWin = 0; int blockingScore = 0; 
 	int threatScore = 0; int dangerScore = 0;
@@ -201,7 +203,7 @@ AlphaBetaBreakThroughPlayer::evaluatePiece(BreakthroughState brd, int row, int c
 }
 
 int
-AlphaBetaBreakThroughPlayer::evaluateBoard(BreakthroughState brd) {
+AlphaBetaBreakThroughPlayer::evaluateBoard(BreakthroughState &brd) {
 	int total = 0; int score = 0; int winScore = 0; int emptyColumns = 0;
 	bool hasWinPiece = false;
 	// Loop through the board and evaluate each piece on the board.
@@ -213,7 +215,9 @@ AlphaBetaBreakThroughPlayer::evaluateBoard(BreakthroughState brd) {
 				if ( (brd.getCurPlayerSym() == brd.HOMESYM) && (row == brd.ROWS-1) ) {
 					hasWinPiece = true;
 				} 
-				if( (brd.getCurPlayerSym() == brd.AWAYSYM) && (row == 0) ) {
+				//I think this can be an else, not sure how much this actually saves us,
+				//but I think every little bit of efficiency counts on this one
+				else if( (brd.getCurPlayerSym() == brd.AWAYSYM) && (row == 0) ) {
 					hasWinPiece = true;
 				}
 			}
