@@ -224,7 +224,7 @@ AlphaBetaBreakThroughPlayer::evaluateBoard(BreakthroughState brd) {
 		winScore = 1000;
 	}
 	// Count the number of empty columns.
-	emptyColumns = numberOfEmptyColumns(brd)*10;
+	emptyColumns = -numberOfEmptyColumns(brd)*10;
 	total = score + winScore + emptyColumns;
 	return total;
 }
