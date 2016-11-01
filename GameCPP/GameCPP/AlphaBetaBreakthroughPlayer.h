@@ -24,7 +24,7 @@ public:
 	*/
 	GameMove *getMove(GameState &state, const std::string &lastMv) override;
 
-	std::vector<BreakthroughMove> getPossibleMoves(BreakthroughState &st, bool home);
+	std::vector<BreakthroughMove> getPossibleMoves(BreakthroughState &st, char sideToMove);
 
 	/**
 	* Assigns a value to the diagonal paths
@@ -92,11 +92,13 @@ public:
 	* @param currDepth the current depth
 	* @param alpha the alpha value
 	* @param beta the beta value
-	* @return the best value
+	* @return the best move, and moves have values attached as member fields
 	*/
-	int negaMax(BreakthroughState brd, int currDepth, int alpha, int beta);
+	BreakthroughMove negaMax(BreakthroughState & brd, int maxDepth, int currDepth, int alpha, int beta);
 
 private:
 	std::vector<BreakthroughMove> mvStack;
 	int depthLimit;
+	char ourSymbol;
+	bool home;
 };

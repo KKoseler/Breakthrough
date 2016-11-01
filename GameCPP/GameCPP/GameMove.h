@@ -28,6 +28,7 @@ public:
     virtual void parseMove(const std::string s) = 0;
     
     virtual ~GameMove() {}
+
 };
 
 
