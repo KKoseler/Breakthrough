@@ -8,6 +8,7 @@
 
 #include "BoardGameState.h"
 #include <algorithm>
+#include <iterator>
 
 BoardGameState::BoardGameState(const BoardGameState& other) : ROWS(other.ROWS),
     COLS(other.COLS), HOMESYM(other.HOMESYM), AWAYSYM(other.AWAYSYM),

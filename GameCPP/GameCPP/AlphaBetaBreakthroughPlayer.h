@@ -24,6 +24,8 @@ public:
 	*/
 	GameMove *getMove(GameState &state, const std::string &lastMv) override;
 
+	std::vector<BreakthroughMove> getPossibleMoves(BreakthroughState &st, bool home);
+
 	/**
 	* Assigns a value to the diagonal paths
 	* @param brd the game state
@@ -95,6 +97,6 @@ public:
 	int negaMax(BreakthroughState brd, int currDepth, int alpha, int beta);
 
 private:
-	std::vector<BreakthroughMove>mvStack;
+	std::vector<BreakthroughMove> mvStack;
 	int depthLimit;
 };

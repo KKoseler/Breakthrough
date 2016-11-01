@@ -9,19 +9,49 @@ AlphaBetaBreakThroughPlayer::getMove(GameState &state,
 	BreakthroughState st = static_cast<BreakthroughState&>(state);
 	//Zmuda's code collects all  possible moves and then chooses
 	//from among them at random
-	std::vector<BreakthroughMove> mvArray;
-	for (int r = 0; r < st.ROWS; r++) {
+	
+	//let's also use the "side" field of GamePlayer for determining if we're home
+	//or away, hopefully we can do this with all methods
+	bool home = getSide() == Who::HOME ? true : false;
+	int rowDelta = home ? +1 : -1;
+
+	//do all this stuff in a separate method, when we get possible moves
+	/*for (int r = 0; r < st.ROWS; r++) {
 		for (int c = 0; c < st.COLS; c++) {
-			int rowDelta = state.getWho() == Who::HOME ? +1 : -1;
 			for (int dc = -1; dc <= +1; dc++) {
+				char current = st.getCell(r, c);
 				BreakthroughMove mv(r, c, r + rowDelta, c + dc);
 				if (state.moveOK(mv)) {
 					mvArray.push_back(BreakthroughMove(mv));
 				}
 			}
 		}
+	}*/
+	return;
+}
+
+//Don't think the GameState from AlphaBetaPlayer is necessary here, no need to evaluate
+//if move is acceptable
+std::vector<BreakthroughMove> AlphaBetaBreakThroughPlayer::getPossibleMoves(BreakthroughState & st, bool home)
+{
+	int rowDelta = home ? +1 : -1;
+	char mySymbol = home ? 'W' : 'B';
+	std::vector<BreakthroughMove> moves;
+
+	for (int r = 0; r < st.ROWS; r++) {
+		for (int c = 0; c < st.COLS; c++) {
+			char current = st.getCell(r, c);
+			if (current == mySymbol) { //only do this if the square has our piece
+				for (int dc = -1; dc <= +1; dc++) {
+					//if the cell we can move to is empty
+					if (st.getCell(r + rowDelta, c + dc) == '.')
+						moves.push_back(BreakthroughMove(r, c, r + rowDelta, c + dc));
+				}
+			}
+		}
 	}
-	return new BreakthroughMove(mvArray[rand() % mvArray.size()]);
+
+	return moves;
 }
 
 int
