@@ -59,3 +59,13 @@ void BoardGameMove::parseMove(const std::string s) {
     std::copy(std::istream_iterator<int>(iss), std::istream_iterator<int>(),
               coordinates.begin());
 }
+
+int BoardGameMove::getScore()
+{
+	return this->score;
+}
+
+void BoardGameMove::setScore(int toSet)
+{
+	this->score = toSet;
+}

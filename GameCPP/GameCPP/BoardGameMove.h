@@ -38,9 +38,14 @@ public:
     std::string toString() const override;
     
     void parseMove(const std::string s) override;
+
+	int getScore();
+
+	void setScore(int toSet);
     
 protected:
     std::vector<int> coordinates;
+	int score;
 };
 
 #endif /* defined(__CSE486AIProject__BoardGameMove__) */
