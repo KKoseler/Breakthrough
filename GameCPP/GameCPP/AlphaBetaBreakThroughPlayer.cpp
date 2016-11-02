@@ -36,14 +36,16 @@ std::vector<BreakthroughMove> AlphaBetaBreakThroughPlayer::getPossibleMoves(Brea
 {
 	int rowDelta = sideToMove == 'W' ? +1 : -1;
 	std::vector<BreakthroughMove> moves;
+	char opponentSide = sideToMove == 'W' ? 'B' : 'W';
 
 	for (int r = 0; r < st.ROWS; r++) {
 		for (int c = 0; c < st.COLS; c++) {
 			char current = st.getCell(r, c);
 			if (current == sideToMove) { //only get moves if piece is of side to move
 				for (int dc = -1; dc <= +1; dc++) {
-					//if the cell we can move to is empty
-					if (st.getCell(r + rowDelta, c + dc) == '.')
+					char potentialMove = st.getCell(r + rowDelta, c + dc);
+					//if the cell we can move to is empty or has opponent's pieces
+					if (potentialMove == '.' || (potentialMove == opponentSide && dc != 0))
 						moves.push_back(BreakthroughMove(r, c, r + rowDelta, c + dc));
 				}
 			}
