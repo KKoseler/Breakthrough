@@ -57,8 +57,9 @@ int main(int argc, char *argv[]) {
     //RandomBreakthroughPlayer p("RandomCPP");
 	//p.solvePuzzles({ "bt1.txt", "bt2.txt", "bt3.txt", "bt4.txt" });
     //p.compete(argc, argv);   // Compete in tournament
-	AlphaBetaBreakThroughPlayer p("Ivanka4Prez", 6);
-	p.solvePuzzle("bt1.txt");
+	AlphaBetaBreakThroughPlayer p("Ivanka4Prez", 3);
+	p.solvePuzzle("bt2.txt");
+	//p.compete(argc, argv);
 
     return 0;
 }

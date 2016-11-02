@@ -25,7 +25,7 @@ public:
 	*/
 	GameMove *getMove(GameState &state, const std::string &lastMv) override;
 
-	std::vector<BreakthroughMove> getPossibleMoves(BreakthroughState &st, char sideToMove);
+	std::vector<BreakthroughMove> getPossibleMoves(BreakthroughState &st, char sideToMove, int currentDepth);
 
 	/**
 	* Assigns a value to the diagonal paths

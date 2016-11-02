@@ -32,11 +32,13 @@ AlphaBetaBreakThroughPlayer::getMove(GameState &state,
 
 //Don't think the GameState from AlphaBetaPlayer is necessary here, no need to evaluate
 //if move is acceptable
-std::vector<BreakthroughMove> AlphaBetaBreakThroughPlayer::getPossibleMoves(BreakthroughState & st, char sideToMove)
+std::vector<BreakthroughMove> AlphaBetaBreakThroughPlayer::getPossibleMoves
+	(BreakthroughState & st, char sideToMove, int depth)
 {
 	int rowDelta = sideToMove == 'W' ? +1 : -1;
 	std::vector<BreakthroughMove> moves;
 	char opponentSide = sideToMove == 'W' ? 'B' : 'W';
+	BreakthroughMove toCheck;
 
 	for (int r = 0; r < st.ROWS; r++) {
 		for (int c = 0; c < st.COLS; c++) {
@@ -46,12 +48,16 @@ std::vector<BreakthroughMove> AlphaBetaBreakThroughPlayer::getPossibleMoves(Brea
 					char potentialMove = st.getCell(r + rowDelta, c + dc);
 					//if the cell we can move to is empty or has opponent's pieces
 					if (potentialMove == '.' || (potentialMove == opponentSide && dc != 0))
-						moves.push_back(BreakthroughMove(r, c, r + rowDelta, c + dc));
+						toCheck = BreakthroughMove(r, c, r + rowDelta, c + dc);
+						if (st.moveOK(toCheck))
+							moves.push_back(toCheck);
 				}
 			}
 		}
 	}
-
+	std::cout << "CURRENT DEPTH: " << depth << std::endl;
+	std::cout << "SIDE TO MOVE: " << sideToMove << std::endl;
+	std::cout << "NUMBER OF MOVES:" << moves.size() << "\n" << std::endl;
 	return moves;
 }
 
@@ -280,7 +286,8 @@ std::pair<int, BreakthroughMove>
 AlphaBetaBreakThroughPlayer::negaMax(BreakthroughState &brd, int maxDepth, int currDepth, int alpha, int beta) {
 	//check if we're done recursing
 	if (brd.checkTerminalUpdateStatus() || currDepth == maxDepth) {
-		std::cout << "END OF RECURSION \n";
+		std::cout << "END OF RECURSION \n" << brd.toDisplayStr() << "\nSCORE OF ABOVE: " 
+			<< evaluateBoard(brd) << "\n" << std::endl;
 		return std::make_pair(evaluateBoard(brd), BreakthroughMove(-1, -1, -1, -1));
 	}
 
@@ -305,7 +312,7 @@ AlphaBetaBreakThroughPlayer::negaMax(BreakthroughState &brd, int maxDepth, int c
 			sideToMove = 'W';
 	}
 
-	std::vector<BreakthroughMove> moves = getPossibleMoves(brd, sideToMove);
+	std::vector<BreakthroughMove> moves = getPossibleMoves(brd, sideToMove, currDepth);
 	for (BreakthroughMove move : moves) {
 		BreakthroughState newBoard = brd;
 		newBoard.makeMove(move);
