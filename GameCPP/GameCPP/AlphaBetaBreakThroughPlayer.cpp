@@ -4,22 +4,30 @@
 
 AlphaBetaBreakThroughPlayer::AlphaBetaBreakThroughPlayer(std::string nickname, int d)
 	: GamePlayer(nickname, "Breakthrough"), depthLimit(d) {
-	//let's also use the "side" field of GamePlayer for determining if we're home
-	//or away, I have added this as two fields for the class.
 	//the ourSymbol field is simply the character of our current side
 	//the home boolean variable is self-explanatory
-	ourSymbol = getSide() == Who::HOME ? 'W' : 'B';
-	home = ourSymbol == 'W' ? true : false;
 }
 
 GameMove* 
 AlphaBetaBreakThroughPlayer::getMove(GameState &state,
 	const std::string &lastMv) {
+	
 	BreakthroughState st = static_cast<BreakthroughState&>(state);
 	
-	std::pair<int, BreakthroughMove> move = negaMax(st, depthLimit, 0, INT_MIN, INT_MAX);
+	//set our global variables
+	ourSymbol = GameState::who2str(getSide()) == "HOME" ? 'W' : 'B';
+	home = ourSymbol == 'W' ? true : false;
+	
+	BreakthroughMove* finalMove;
 
-	return &std::get<1>(move);
+	std::pair<int, BreakthroughMove> move = negaMax(st, depthLimit, 0, INT_MIN, INT_MAX);
+	if (state.moveOK(std::get<1>(move)))
+		std::cout << "MOVE IS OK\n";
+
+	std::cout << "RIGHT BEFORE RETURN OF FINAL MOVE\n";
+	finalMove = new BreakthroughMove(std::get<1>(move));
+	std::cout << finalMove->toString();
+	return finalMove;
 }
 
 //Don't think the GameState from AlphaBetaPlayer is necessary here, no need to evaluate
@@ -269,8 +277,10 @@ AlphaBetaBreakThroughPlayer::evaluateBoard(BreakthroughState &brd) {
 std::pair<int, BreakthroughMove>
 AlphaBetaBreakThroughPlayer::negaMax(BreakthroughState &brd, int maxDepth, int currDepth, int alpha, int beta) {
 	//check if we're done recursing
-	if (brd.checkTerminalUpdateStatus || currDepth == maxDepth)
+	if (brd.checkTerminalUpdateStatus() || currDepth == maxDepth) {
+		std::cout << "END OF RECURSION \n";
 		return std::make_pair(evaluateBoard(brd), BreakthroughMove(-1, -1, -1, -1));
+	}
 
 	BreakthroughMove bestMove;
 	int bestScore = INT_MIN;

@@ -57,6 +57,7 @@ public:
 			input.close();
 
 			st->parseMsg(boardStr);
+			side = st->getWho(); // Per Dr. Zmuda's email
 			GameMove *move = getPuzzleMove(*st);
 			std::cout << "Original board:" << std::endl;
 			std::cout << st->toDisplayStr() << std::endl;

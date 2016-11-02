@@ -6,6 +6,7 @@
 //  Copyright (c) 2015 Yunlong Nick Liu. All rights reserved.
 //
 #include "RandomBreakthroughPlayer.h"
+#include "AlphaBetaBreakthroughPlayer.h"
 #include "main.h"
 
 std::string readFile(std::string fname) {
@@ -53,8 +54,11 @@ void sometests() {
 }
 
 int main(int argc, char *argv[]) {
-    RandomBreakthroughPlayer p("RandomCPP");
-	p.solvePuzzles({ "bt1.txt", "bt2.txt", "bt3.txt", "bt4.txt" });
+    //RandomBreakthroughPlayer p("RandomCPP");
+	//p.solvePuzzles({ "bt1.txt", "bt2.txt", "bt3.txt", "bt4.txt" });
     //p.compete(argc, argv);   // Compete in tournament
+	AlphaBetaBreakThroughPlayer p("Ivanka4Prez", 5);
+	p.solvePuzzle("bt1.txt");
+
     return 0;
 }
