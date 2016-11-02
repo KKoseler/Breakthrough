@@ -26,12 +26,13 @@ AlphaBetaBreakThroughPlayer::getMove(GameState &state,
 std::vector<BreakthroughMove> AlphaBetaBreakThroughPlayer::getPossibleMoves(BreakthroughState & st, char sideToMove)
 {
 	int rowDelta = sideToMove == 'W' ? +1 : -1;
+	char ourChar = home ? st.HOMESYM : st.AWAYSYM;
 	std::vector<BreakthroughMove> moves;
 
 	for (int r = 0; r < st.ROWS; r++) {
 		for (int c = 0; c < st.COLS; c++) {
 			char current = st.getCell(r, c);
-			if (current == sideToMove) { //only loop if it's the side to move
+			if (current == ourChar) { //only loop if it's the side to move
 				for (int dc = -1; dc <= +1; dc++) {
 					//if the cell we can move to is empty
 					if (st.getCell(r + rowDelta, c + dc) == '.')
@@ -262,7 +263,7 @@ AlphaBetaBreakThroughPlayer::evaluateBoard(BreakthroughState &brd) {
 	// Count the number of empty columns from Away perspective.
 	awayEmptyColumns = -numberOfEmptyColumns(brd, brd.AWAYSYM)*10;
 	total = (evalScore1 + homeWinScore + homeEmptyColumns) - (evalScore2 + awayWinScore + awayEmptyColumns);
-	return total;
+	return home ? total : -total;
 }
 
 BreakthroughMove
