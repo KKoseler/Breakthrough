@@ -16,7 +16,7 @@ AlphaBetaBreakThroughPlayer::getMove(GameState &state,
 	BreakthroughState st = static_cast<BreakthroughState&>(state);
 	//Zmuda's code collects all  possible moves and then chooses
 	//from among them at random
-	BreakthroughMove = negaMax(st, d, 0, INT_MIN, INT_MAX);
+	//BreakthroughMove = negaMax(st, depthLimit, 0, INT_MIN, INT_MAX);
 
 	return;
 }
@@ -45,11 +45,11 @@ std::vector<BreakthroughMove> AlphaBetaBreakThroughPlayer::getPossibleMoves(Brea
 }
 
 int
-AlphaBetaBreakThroughPlayer::diagonalPath(BreakthroughState &brd, int row, int col) {
+AlphaBetaBreakThroughPlayer::diagonalPath(BreakthroughState &brd, char who, int row, int col) {
 	int leftDiagPath = 0; int rightDiagPath = 0; int twoDiagPath = 0;
 	bool isTwoDiagPath = false; bool isLeftDiagPath = false; bool isRightDiagPath = false;
 	// Evaluate piece for home system.
-	if (home) {
+	if (who == brd.HOMESYM) {
 		// There exists only a left diagonal path in one step.
 		if ((brd.posOK(row + 1, col - 1) && brd.getCell(row + 1, col - 1) == brd.EMPTYSYM) &&
 			((brd.posOK(row + 1, col + 1) && brd.getCell(row + 1, col + 1) != brd.EMPTYSYM) ||
@@ -123,14 +123,14 @@ AlphaBetaBreakThroughPlayer::diagonalPath(BreakthroughState &brd, int row, int c
 }
 
 int
-AlphaBetaBreakThroughPlayer::numberOfEmptyColumns(BreakthroughState &brd) {
+AlphaBetaBreakThroughPlayer::numberOfEmptyColumns(BreakthroughState &brd, char who) {
 	int counter = brd.COLS;
 	// Count the nubmer of empty columns. Counter starts at the board's number of columns
 	// and assumes all columns are filled. The counter decrements when it finds
 	// the current player in the column.
 	for (int col = 0; col < brd.COLS; col++) {
 		for (int row = 0; row < brd.ROWS; row++) {
-			if (brd.getCell(row, col) == ourSymbol) {
+			if (brd.getCell(row, col) == who) {
 				counter--;
 				break;
 			}
@@ -140,10 +140,10 @@ AlphaBetaBreakThroughPlayer::numberOfEmptyColumns(BreakthroughState &brd) {
 }
 
 int
-AlphaBetaBreakThroughPlayer::threatPosition(BreakthroughState &brd, int row, int col) {
+AlphaBetaBreakThroughPlayer::threatPosition(BreakthroughState &brd, char who, int row, int col) {
 	int threatScore = 0;
 	// Evaluate piece for home system.
-	if (home) {
+	if (who == brd.HOMESYM) {
 		// Determine if there is an opponent piece in the left diagonal or right diagonal positions.
 		if ((brd.posOK(row + 1, col + 1) && brd.getCell(row + 1, col - 1) == brd.AWAYSYM)
 			|| (brd.posOK(row + 1, col + 1) && brd.getCell(row + 1, col + 1) == brd.AWAYSYM)) {
@@ -160,10 +160,10 @@ AlphaBetaBreakThroughPlayer::threatPosition(BreakthroughState &brd, int row, int
 }
 
 int
-AlphaBetaBreakThroughPlayer::defensivePosition(BreakthroughState &brd, int row, int col) {
+AlphaBetaBreakThroughPlayer::defensivePosition(BreakthroughState &brd, char who, int row, int col) {
 	int threePieceBlockScore = 0; 
 	// Evaluate piece for home system.
-	if (home) {
+	if (who == brd.HOMESYM) {
 		// Determine if there is a three piece triangle block.
 		if ( (brd.posOK(row - 1, col - 1) && brd.getCell(row - 1, col - 1) == brd.HOMESYM)
 			&& (brd.posOK(row - 1, col + 1) && brd.getCell(row - 1, col + 1) == brd.HOMESYM) ) {
@@ -180,10 +180,10 @@ AlphaBetaBreakThroughPlayer::defensivePosition(BreakthroughState &brd, int row, 
 }
 
 int
-AlphaBetaBreakThroughPlayer::pieceNearEndPosition(BreakthroughState &brd, int row, int col) {
+AlphaBetaBreakThroughPlayer::pieceNearEndPosition(BreakthroughState &brd, char who, int row, int col) {
 	int dangerousPosition = 0;
 	// Evaluate piece for home system.
-	if (home) {
+	if (who == brd.HOMESYM) {
 		if ((brd.getCell(row, col) == brd.AWAYSYM) && (row == 1)) {
 			dangerousPosition = 100;
 		}
@@ -196,16 +196,16 @@ AlphaBetaBreakThroughPlayer::pieceNearEndPosition(BreakthroughState &brd, int ro
 }
 
 int
-AlphaBetaBreakThroughPlayer::evaluatePiece(BreakthroughState &brd, int row, int col) {
+AlphaBetaBreakThroughPlayer::evaluatePiece(BreakthroughState &brd, char who, int row, int col) {
 	int score = 0; int distanceScore = 0; int pathScore = 0;
 	int oneStepToWin = 0; int blockingScore = 0; 
 	int threatScore = 0; int dangerScore = 0;
-	pathScore = diagonalPath(brd, row, col);
-	blockingScore = defensivePosition(brd, row, col);
-	threatScore = -threatPosition(brd, row, col);
-	dangerScore = -pieceNearEndPosition(brd, row, col);
+	pathScore = diagonalPath(brd, who, row, col);
+	blockingScore = defensivePosition(brd, who, row, col);
+	threatScore = -threatPosition(brd, who, row, col);
+	dangerScore = -pieceNearEndPosition(brd, who, row, col);
 	// Evaluate piece for home system.
-	if (home) {
+	if (who == brd.HOMESYM) {
 		// Assign value based on distance from goal.
 		distanceScore = row + 1;
 		if (row == (brd.ROWS - 2)) {
@@ -222,40 +222,46 @@ AlphaBetaBreakThroughPlayer::evaluatePiece(BreakthroughState &brd, int row, int 
 	return score;
 }
 
-//The evaluateBoard should always look at the board from our perspective.
-//I removed the call to getCurPlayerSym because this will cause us to 
-//evaluate the board from the other player's perspective when examining their moves.
-//Need to update this evaluation function to always examine from our perspective
-//and look at the opponent's pieces. It's currently just evaluating our pieces.
 int
 AlphaBetaBreakThroughPlayer::evaluateBoard(BreakthroughState &brd) {
-	int total = 0; int score = 0; int winScore = 0; int emptyColumns = 0;
-	bool hasWinPiece = false; char ourSymbol = getSide() == Who::HOME ? 'W' : 'B';
+	int total = 0; int evalScore1 = 0; int evalScore2 = 0; int homeWinScore = 0;
+	int awayWinScore = 0; int homeEmptyColumns = 0; int awayEmptyColumns = 0; 
+	bool homeHasWinPiece = false; bool awayHasWinPiece = false;
+	int homePieces = 0; int awayPieces = 0;
 	// Loop through the board and evaluate each piece on the board.
-	// Assign a value to the board based on the current state.
+	// Assign a value to the board based on the evaluation of Home and Away pieces.
+	// Count the number of Home and Away pieces.
 	for (int row = 0; row < brd.ROWS; row++) {
 		for (int col = 0; col < brd.COLS; col++) {
-			char current = brd.getCell(row, col);
-			if (current == ourSymbol) { //if it's our piece
-				score += evaluatePiece(brd, row, col);
-				if ( home && (row == brd.ROWS-1) ) { // if home has a win
-					hasWinPiece = true;
+			char current = brd.getCell(row, col); 
+			if (current == brd.HOMESYM) { //if it's our piece
+				evalScore1 += evaluatePiece(brd, current, row, col);
+				homePieces++;
+				if ( (current == brd.HOMESYM) && (row == brd.ROWS-1) ) { // if home has a win
+					homeHasWinPiece = true;
 				} 
-				//I think this can be an else, not sure how much this actually saves us,
-				//but I think every little bit of efficiency counts on this one
-				else if( !home && (row == 0) ) { //if away has a win
-					hasWinPiece = true;
+			}
+			else if(current == brd.AWAYSYM) {
+				evalScore2 += evaluatePiece(brd, current, row, col);
+				awayPieces++;
+				if ( (current == brd.AWAYSYM) && (row == 0)) { //if away has a win
+					awayHasWinPiece = true;
 				}
 			}
 		}
 	}
-	// The state with a winning piece is assigned a high score.
-	if (hasWinPiece) {
-		winScore = 1000;
+	// A high score is assigned when a side has the winning piece or the their opponent has no pieces remaining. 
+	if (homeHasWinPiece || (awayPieces == 0)) {
+		homeWinScore = 1000;
 	}
-	// Count the number of empty columns.
-	emptyColumns = -numberOfEmptyColumns(brd)*10;
-	total = score + winScore + emptyColumns;
+	if (awayHasWinPiece || (homePieces == 0)) {
+		awayWinScore = 1000;
+	}
+	// Count the number of empty columns from Home perspective.
+	homeEmptyColumns = -numberOfEmptyColumns(brd, brd.HOMESYM)*10;
+	// Count the number of empty columns from Away perspective.
+	awayEmptyColumns = -numberOfEmptyColumns(brd, brd.AWAYSYM)*10;
+	total = (evalScore1 + homeWinScore + homeEmptyColumns) - (evalScore2 + awayWinScore + awayEmptyColumns);
 	return total;
 }
 
