@@ -1,4 +1,6 @@
+#define NOMINMAX
 #include "AlphaBetaBreakThroughPlayer.h"
+#include <algorithm>
 
 AlphaBetaBreakThroughPlayer::AlphaBetaBreakThroughPlayer(std::string nickname, int d)
 	: GamePlayer(nickname, "Breakthrough"), depthLimit(d) {
@@ -14,11 +16,10 @@ GameMove*
 AlphaBetaBreakThroughPlayer::getMove(GameState &state,
 	const std::string &lastMv) {
 	BreakthroughState st = static_cast<BreakthroughState&>(state);
-	//Zmuda's code collects all  possible moves and then chooses
-	//from among them at random
-	//BreakthroughMove = negaMax(st, depthLimit, 0, INT_MIN, INT_MAX);
+	
+	std::pair<int, BreakthroughMove> move = negaMax(st, depthLimit, 0, INT_MIN, INT_MAX);
 
-	return;
+	return &std::get<1>(move);
 }
 
 //Don't think the GameState from AlphaBetaPlayer is necessary here, no need to evaluate
@@ -26,13 +27,12 @@ AlphaBetaBreakThroughPlayer::getMove(GameState &state,
 std::vector<BreakthroughMove> AlphaBetaBreakThroughPlayer::getPossibleMoves(BreakthroughState & st, char sideToMove)
 {
 	int rowDelta = sideToMove == 'W' ? +1 : -1;
-	char ourChar = home ? st.HOMESYM : st.AWAYSYM;
 	std::vector<BreakthroughMove> moves;
 
 	for (int r = 0; r < st.ROWS; r++) {
 		for (int c = 0; c < st.COLS; c++) {
 			char current = st.getCell(r, c);
-			if (current == ourChar) { //only loop if it's the side to move
+			if (current == sideToMove) { //only get moves if piece is of side to move
 				for (int dc = -1; dc <= +1; dc++) {
 					//if the cell we can move to is empty
 					if (st.getCell(r + rowDelta, c + dc) == '.')
@@ -266,10 +266,50 @@ AlphaBetaBreakThroughPlayer::evaluateBoard(BreakthroughState &brd) {
 	return home ? total : -total;
 }
 
-BreakthroughMove
+std::pair<int, BreakthroughMove>
 AlphaBetaBreakThroughPlayer::negaMax(BreakthroughState &brd, int maxDepth, int currDepth, int alpha, int beta) {
-	//check if we'redone recursing
-	//if (brd.checkTerminalUpdateStatus || currDepth == maxDepth)
-	/*	WORK IN PROGRESS 
-	*/
+	//check if we're done recursing
+	if (brd.checkTerminalUpdateStatus || currDepth == maxDepth)
+		return std::make_pair(evaluateBoard(brd), BreakthroughMove(-1, -1, -1, -1));
+
+	BreakthroughMove bestMove;
+	int bestScore = INT_MIN;
+	char sideToMove;
+
+	//check which side's moves we need to obtain
+
+	//if it's our turn to move
+	if (currDepth % 2 == 0) {
+		if (ourSymbol == 'W')
+			sideToMove = 'W';
+		else //we are the away side
+			sideToMove = 'B';
+	}
+	
+	else { //it's opponent's turn to move
+		if (ourSymbol == 'W')
+			sideToMove = 'B';
+		else // we are the away side
+			sideToMove = 'W';
+	}
+
+	std::vector<BreakthroughMove> moves = getPossibleMoves(brd, sideToMove);
+	for (BreakthroughMove move : moves) {
+		BreakthroughState newBoard = brd;
+		newBoard.makeMove(move);
+		std::pair<int, BreakthroughMove> scoreAndMove = negaMax(newBoard, maxDepth, 
+			currDepth + 1, -beta, -std::max(alpha, bestScore));
+		int currentScore = -scoreAndMove.first;
+
+		if (currentScore > bestScore) {
+			bestScore = currentScore;
+			bestMove = move;
+			
+			//the pruning condition
+			if (bestScore >= beta)
+				return std::make_pair(bestScore, bestMove);
+		}
+	}
+
+	return std::make_pair(bestScore, bestMove);
 }

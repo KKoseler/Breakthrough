@@ -6,6 +6,7 @@
 #include "BoardGameState.h"
 #include "GameState.h"
 #include <stdio.h>
+#include <utility>
 
 class AlphaBetaBreakThroughPlayer : public GamePlayer {
 public:
@@ -99,7 +100,7 @@ public:
 	* @param beta the beta value
 	* @return the best move, and moves have values attached as member fields
 	*/
-	BreakthroughMove negaMax(BreakthroughState & brd, int maxDepth, int currDepth, int alpha, int beta);
+	std::pair<int, BreakthroughMove> negaMax(BreakthroughState & brd, int maxDepth, int currDepth, int alpha, int beta);
 
 private:
 	std::vector<BreakthroughMove> mvStack;
