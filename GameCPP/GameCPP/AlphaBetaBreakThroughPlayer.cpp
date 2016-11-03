@@ -38,26 +38,28 @@ std::vector<BreakthroughMove> AlphaBetaBreakThroughPlayer::getPossibleMoves
 	int rowDelta = sideToMove == 'W' ? +1 : -1;
 	std::vector<BreakthroughMove> moves;
 	char opponentSide = sideToMove == 'W' ? 'B' : 'W';
-	BreakthroughMove toCheck;
+	BreakthroughMove toAdd;
 
 	for (int r = 0; r < st.ROWS; r++) {
 		for (int c = 0; c < st.COLS; c++) {
 			char current = st.getCell(r, c);
 			if (current == sideToMove) { //only get moves if piece is of side to move
 				for (int dc = -1; dc <= +1; dc++) {
-					char potentialMove = st.getCell(r + rowDelta, c + dc);
-					//if the cell we can move to is empty or has opponent's pieces
-					if (potentialMove == '.' || (potentialMove == opponentSide && dc != 0))
-						toCheck = BreakthroughMove(r, c, r + rowDelta, c + dc);
-						if (st.moveOK(toCheck))
-							moves.push_back(toCheck);
+					if (st.posOK(r + rowDelta, c + dc)) {
+						char potentialMove = st.getCell(r + rowDelta, c + dc);
+						//if the cell we can move to is empty or has opponent's pieces
+						if (potentialMove == '.' || (potentialMove == opponentSide && dc != 0)) {
+							toAdd = BreakthroughMove(r, c, r + rowDelta, c + dc);
+							moves.push_back(toAdd);
+						}
+					}
 				}
 			}
 		}
 	}
-	std::cout << "CURRENT DEPTH: " << depth << std::endl;
+	/*std::cout << "CURRENT DEPTH: " << depth << std::endl;
 	std::cout << "SIDE TO MOVE: " << sideToMove << std::endl;
-	std::cout << "NUMBER OF MOVES:" << moves.size() << "\n" << std::endl;
+	std::cout << "NUMBER OF MOVES:" << moves.size() << "\n" << std::endl;*/
 	return moves;
 }
 
@@ -97,7 +99,7 @@ AlphaBetaBreakThroughPlayer::diagonalPath(BreakthroughState &brd, char who, int 
 		}
 		// There exists a left and right diagonal path with two steps.
 		if (((brd.posOK(row + 2, col - 2) && brd.getCell(row + 2, col - 2) == brd.EMPTYSYM) &&
-			(brd.posOK(row + 2, col - 2) && brd.getCell(row + 2, col + 2) == brd.EMPTYSYM)) && (isTwoDiagPath)) {
+			(brd.posOK(row + 2, col + 2) && brd.getCell(row + 2, col + 2) == brd.EMPTYSYM)) && (isTwoDiagPath)) {
 			twoDiagPath = 15;
 		}
 	}
@@ -269,10 +271,10 @@ AlphaBetaBreakThroughPlayer::evaluateBoard(BreakthroughState &brd) {
 	}
 	// A high score is assigned when a side has the winning piece or the their opponent has no pieces remaining. 
 	if (homeHasWinPiece || (awayPieces == 0)) {
-		homeWinScore = 1000;
+		homeWinScore = 2000;
 	}
 	if (awayHasWinPiece || (homePieces == 0)) {
-		awayWinScore = 1000;
+		awayWinScore = 2000;
 	}
 	// Count the number of empty columns from Home perspective.
 	homeEmptyColumns = -numberOfEmptyColumns(brd, brd.HOMESYM)*10;
@@ -286,8 +288,8 @@ std::pair<int, BreakthroughMove>
 AlphaBetaBreakThroughPlayer::negaMax(BreakthroughState &brd, int maxDepth, int currDepth, int alpha, int beta) {
 	//check if we're done recursing
 	if (brd.checkTerminalUpdateStatus() || currDepth == maxDepth) {
-		std::cout << "END OF RECURSION \n" << brd.toDisplayStr() << "\nSCORE OF ABOVE: " 
-			<< evaluateBoard(brd) << "\n" << std::endl;
+		//std::cout << "END OF RECURSION \n" << brd.toDisplayStr() << "\nSCORE OF ABOVE: " 
+			//<< evaluateBoard(brd) << "\n" << std::endl;
 		return std::make_pair(evaluateBoard(brd), BreakthroughMove(-1, -1, -1, -1));
 	}
 
