@@ -20,7 +20,7 @@ AlphaBetaBreakThroughPlayer::getMove(GameState &state,
 	
 	BreakthroughMove* finalMove;
 
-	std::pair<int, BreakthroughMove> move = negaMax(st, depthLimit, 0, INT_MIN, INT_MAX, true);
+	std::pair<int, BreakthroughMove> move = negaMax(st, depthLimit, 0, INT_MIN, INT_MAX);
 	/*if (state.moveOK(std::get<1>(move)))
 		std::cout << "MOVE IS OK\n";
 
@@ -246,7 +246,7 @@ AlphaBetaBreakThroughPlayer::evaluateBoard(BreakthroughState &brd) {
 	int total = 0; int evalScore1 = 0; int evalScore2 = 0; int homeWinScore = 0;
 	int awayWinScore = 0; int homeEmptyColumns = 0; int awayEmptyColumns = 0; 
 	bool homeHasWinPiece = false; bool awayHasWinPiece = false;
-	int homePieces = 0; int awayPieces = 0;
+	int homePieces = 0; int awayPieces = 0; char player = brd.getCurPlayerSym();
 	// Loop through the board and evaluate each piece on the board.
 	// Assign a value to the board based on the evaluation of Home and Away pieces.
 	// Count the number of Home and Away pieces.
@@ -270,30 +270,27 @@ AlphaBetaBreakThroughPlayer::evaluateBoard(BreakthroughState &brd) {
 		}
 	}
 	// A high score is assigned when a side has the winning piece or the their opponent has no pieces remaining. 
-	if (homeHasWinPiece || (awayPieces == 0)) {
-		homeWinScore = 2000;
+	if (homeHasWinPiece) {
+		homeWinScore = 5000;
 	}
-	if (awayHasWinPiece || (homePieces == 0)) {
-		awayWinScore = 2000;
+	if (awayHasWinPiece) {
+		awayWinScore = 5000;
 	}
 	// Count the number of empty columns from Home perspective.
 	homeEmptyColumns = -numberOfEmptyColumns(brd, brd.HOMESYM)*10;
 	// Count the number of empty columns from Away perspective.
 	awayEmptyColumns = -numberOfEmptyColumns(brd, brd.AWAYSYM)*10;
 	total = (evalScore1 + homeWinScore + homeEmptyColumns) - (evalScore2 + awayWinScore + awayEmptyColumns);
-	return home ? total : -total;
+	return player == 'W' ? total : -total;
 }
 
 std::pair<int, BreakthroughMove>
-AlphaBetaBreakThroughPlayer::negaMax(BreakthroughState &brd, int maxDepth, int currDepth, int alpha, int beta, bool max) {
+AlphaBetaBreakThroughPlayer::negaMax(BreakthroughState &brd, int maxDepth, int currDepth, int alpha, int beta) {
 	//check if we're done recursing
 	if (brd.checkTerminalUpdateStatus() || currDepth == maxDepth) {
 		/*std::cout << "END OF RECURSION \n" << brd.toDisplayStr() << "\nSCORE OF ABOVE: " 
 			<< evaluateBoard(brd) << "\n" << std::endl;*/
-		if (max)
-			return std::make_pair(evaluateBoard(brd), BreakthroughMove(-1, -1, -1, -1));
-		else
-			return std::make_pair(-evaluateBoard(brd), BreakthroughMove(-1, -1, -1, -1));
+		return std::make_pair(evaluateBoard(brd), BreakthroughMove(-1, -1, -1, -1));
 	}
 
 	BreakthroughMove bestMove;
@@ -322,18 +319,26 @@ AlphaBetaBreakThroughPlayer::negaMax(BreakthroughState &brd, int maxDepth, int c
 		BreakthroughState newBoard = brd;
 		newBoard.makeMove(move);
 		std::pair<int, BreakthroughMove> scoreAndMove = negaMax(newBoard, maxDepth, 
-			currDepth + 1, -beta, -std::max(alpha, bestScore), !max);
+			currDepth + 1, -beta, -(std::max(alpha, bestScore)));
 		int currentScore = -scoreAndMove.first;
+
+		if (currDepth == 0) {
+			std::cout << "MOVE BEING EXAMINED: " << move.toString() << std::endl;
+			std::cout << "SCORE OF ABOVE MOVE: " << currentScore << "\n" << std::endl;
+		}
 
 		if (currentScore > bestScore) {
 			bestScore = currentScore;
 			bestMove = move;
 			
 			//the pruning condition
-			if (bestScore >= beta)
+			if (bestScore > beta)
 				return std::make_pair(bestScore, bestMove);
 		}
 	}
-
+	/*std::cout << "CURRENT DEPTH: " << currDepth << std::endl;
+	std::cout << "CURRENT PLAYER: " << sideToMove << std::endl;
+	std::cout << "BEST MOVE: " << bestMove.toString() << std::endl;
+	std::cout << "SCORE OF ABOVE MOVE: " << bestScore << "\n" << std::endl;*/
 	return std::make_pair(bestScore, bestMove);
 }
