@@ -100,7 +100,7 @@ public:
 	* @param beta the beta value
 	* @return the best move, and moves have values attached as member fields
 	*/
-	std::pair<int, BreakthroughMove> negaMax(BreakthroughState & brd, int maxDepth, int currDepth, int alpha, int beta);
+	std::pair<int, BreakthroughMove> negaMax(BreakthroughState & brd, int maxDepth, int currDepth, int alpha, int beta, bool max);
 
 private:
 	std::vector<BreakthroughMove> mvStack;

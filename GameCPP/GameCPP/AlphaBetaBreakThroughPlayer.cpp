@@ -20,13 +20,13 @@ AlphaBetaBreakThroughPlayer::getMove(GameState &state,
 	
 	BreakthroughMove* finalMove;
 
-	std::pair<int, BreakthroughMove> move = negaMax(st, depthLimit, 0, INT_MIN, INT_MAX);
-	if (state.moveOK(std::get<1>(move)))
+	std::pair<int, BreakthroughMove> move = negaMax(st, depthLimit, 0, INT_MIN, INT_MAX, true);
+	/*if (state.moveOK(std::get<1>(move)))
 		std::cout << "MOVE IS OK\n";
 
-	std::cout << "RIGHT BEFORE RETURN OF FINAL MOVE\n";
+	std::cout << "RIGHT BEFORE RETURN OF FINAL MOVE\n";*/
 	finalMove = new BreakthroughMove(std::get<1>(move));
-	std::cout << finalMove->toString();
+	//std::cout << finalMove->toString();
 	return finalMove;
 }
 
@@ -285,12 +285,15 @@ AlphaBetaBreakThroughPlayer::evaluateBoard(BreakthroughState &brd) {
 }
 
 std::pair<int, BreakthroughMove>
-AlphaBetaBreakThroughPlayer::negaMax(BreakthroughState &brd, int maxDepth, int currDepth, int alpha, int beta) {
+AlphaBetaBreakThroughPlayer::negaMax(BreakthroughState &brd, int maxDepth, int currDepth, int alpha, int beta, bool max) {
 	//check if we're done recursing
 	if (brd.checkTerminalUpdateStatus() || currDepth == maxDepth) {
-		//std::cout << "END OF RECURSION \n" << brd.toDisplayStr() << "\nSCORE OF ABOVE: " 
-			//<< evaluateBoard(brd) << "\n" << std::endl;
-		return std::make_pair(evaluateBoard(brd), BreakthroughMove(-1, -1, -1, -1));
+		/*std::cout << "END OF RECURSION \n" << brd.toDisplayStr() << "\nSCORE OF ABOVE: " 
+			<< evaluateBoard(brd) << "\n" << std::endl;*/
+		if (max)
+			return std::make_pair(evaluateBoard(brd), BreakthroughMove(-1, -1, -1, -1));
+		else
+			return std::make_pair(-evaluateBoard(brd), BreakthroughMove(-1, -1, -1, -1));
 	}
 
 	BreakthroughMove bestMove;
@@ -319,7 +322,7 @@ AlphaBetaBreakThroughPlayer::negaMax(BreakthroughState &brd, int maxDepth, int c
 		BreakthroughState newBoard = brd;
 		newBoard.makeMove(move);
 		std::pair<int, BreakthroughMove> scoreAndMove = negaMax(newBoard, maxDepth, 
-			currDepth + 1, -beta, -std::max(alpha, bestScore));
+			currDepth + 1, -beta, -std::max(alpha, bestScore), !max);
 		int currentScore = -scoreAndMove.first;
 
 		if (currentScore > bestScore) {
