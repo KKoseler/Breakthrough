@@ -100,7 +100,7 @@ public:
 	* @param who the piece
 	* @return Zobrist key
 	*/
-	long long zobristHash(char who);
+	long zobristHash(char who);
 
 	/**
 	* Computes the best value of a position 
@@ -117,12 +117,11 @@ private:
 	int depthLimit;
 	char ourSymbol;
 	bool home;
-<<<<<<< HEAD
+
 	int numMoves;
-=======
+
 	std::vector< std::vector< long > > zobristkeys;
 	TranspositionTable transTable;
 	TableEntry entry;
 
->>>>>>> origin/master
 };
