@@ -5,8 +5,11 @@
 #include "BreakthroughMove.h"
 #include "BoardGameState.h"
 #include "GameState.h"
+#include "TranspositionTable.h"
 #include <stdio.h>
 #include <utility>
+#include <random>
+#include <cmath>
 
 class AlphaBetaBreakThroughPlayer : public GamePlayer {
 public:
@@ -93,6 +96,13 @@ public:
 	int evaluateBoard(BreakthroughState & brd);
 
 	/**
+	* A hash function that generates a Zobrist key for moves
+	* @param who the piece
+	* @return Zobrist key
+	*/
+	long long zobristHash(char who);
+
+	/**
 	* Computes the best value of a position 
 	* @param brd the game state
 	* @param currDepth the current depth
@@ -107,4 +117,8 @@ private:
 	int depthLimit;
 	char ourSymbol;
 	bool home;
+	std::vector< std::vector< long > > zobristkeys;
+	TranspositionTable transTable;
+	TableEntry entry;
+
 };

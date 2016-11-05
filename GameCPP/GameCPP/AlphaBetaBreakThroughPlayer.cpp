@@ -6,6 +6,17 @@ AlphaBetaBreakThroughPlayer::AlphaBetaBreakThroughPlayer(std::string nickname, i
 	: GamePlayer(nickname, "Breakthrough"), depthLimit(d) {
 	//the ourSymbol field is simply the character of our current side
 	//the home boolean variable is self-explanatory
+	std::random_device random;
+	std::mt19937 engine(random());
+	double lower = std::pow(2, 61);
+	double upper = std::pow(2, 62);
+	std::uniform_int_distribution<long>distribution(std::llround(lower), std::llround(upper));
+	std::vector<std::vector<long> >zobristkeys(2, std::vector<long>(64));
+	for (int i = 0; i < 2; i++) {
+		for (int j = 0; j < 64; j++) {
+			zobristkeys[i][j] = distribution(engine);
+		}
+	}
 }
 
 GameMove* 
@@ -293,8 +304,23 @@ AlphaBetaBreakThroughPlayer::evaluateBoard(BreakthroughState &brd) {
 	return player == 'W' ? total : -total;
 }
 
+long long
+AlphaBetaBreakThroughPlayer::zobristHash(char who) {
+	long long hash = 0;
+	for (int i = 0; i < 64; i++) {
+		if (who == 'W') {
+			hash ^= zobristkeys[0][i];
+		}
+		else if (who == 'B')  {
+			hash ^= zobristkeys[1][i];
+		}
+	}
+	return hash;
+}
+
 std::pair<int, BreakthroughMove>
 AlphaBetaBreakThroughPlayer::negaMax(BreakthroughState &brd, int maxDepth, int currDepth, int alpha, int beta) {
+	
 	//check if we're done recursing
 	bool terminalState = brd.checkTerminalUpdateStatus();
 	if (terminalState || currDepth == maxDepth) {
@@ -338,6 +364,7 @@ AlphaBetaBreakThroughPlayer::negaMax(BreakthroughState &brd, int maxDepth, int c
 	for (BreakthroughMove move : moves) {
 		BreakthroughState newBoard = brd;
 		newBoard.makeMove(move);
+		
 		std::pair<int, BreakthroughMove> scoreAndMove = negaMax(newBoard, maxDepth, 
 			currDepth + 1, -beta, -(std::max(alpha, bestScore)));
 		int currentScore = -scoreAndMove.first;
