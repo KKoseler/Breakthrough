@@ -1,3 +1,21 @@
-﻿  main.cpp
-  GameCPP.vcxproj -> C:\Users\Kaan\Documents\GitHub\Breakthrough\GameCPP\Debug\GameCPP.exe
-  GameCPP.vcxproj -> C:\Users\Kaan\Documents\GitHub\Breakthrough\GameCPP\Debug\GameCPP.pdb (Full PDB)
+﻿  RandomDomineeringPlayer.cpp
+  RandomBreakthroughPlayer.cpp
+  Params.cpp
+  Network.cpp
+  main.cpp
+  GameStateFactory.cpp
+  GameState.cpp
+  GamePlayer.cpp
+  DomineeringState.cpp
+  ClobberState.cpp
+  BreakthroughState.cpp
+  BoardGameState.cpp
+  BoardGameMove.cpp
+  AlphaBetaBreakThroughPlayer.cpp
+  Generating Code...
+c:\users\koselekt\documents\github\breakthrough\gamecpp\gamecpp\alphabetabreakthroughplayer.cpp(299): fatal error C1001: An internal error has occurred in the compiler.
+  (compiler file 'f:\dd\vctools\compiler\utc\src\p2\main.c', line 255)
+   To work around this problem, try simplifying or changing the program near the locations listed above.
+  Please choose the Technical Support command on the Visual C++ 
+   Help menu, or open the Technical Support help file for more information
+  

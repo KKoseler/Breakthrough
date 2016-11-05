@@ -107,4 +107,5 @@ private:
 	int depthLimit;
 	char ourSymbol;
 	bool home;
+	int numMoves;
 };

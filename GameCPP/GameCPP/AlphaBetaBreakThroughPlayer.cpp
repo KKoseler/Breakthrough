@@ -1,32 +1,42 @@
 #define NOMINMAX
 #include "AlphaBetaBreakThroughPlayer.h"
 #include <algorithm>
+#include <chrono>
+#include <ctime>
 
 AlphaBetaBreakThroughPlayer::AlphaBetaBreakThroughPlayer(std::string nickname, int d)
 	: GamePlayer(nickname, "Breakthrough"), depthLimit(d) {
 	//the ourSymbol field is simply the character of our current side
 	//the home boolean variable is self-explanatory
+	numMoves = 0;
 }
 
 GameMove* 
 AlphaBetaBreakThroughPlayer::getMove(GameState &state,
 	const std::string &lastMv) {
-	
+	std::chrono::time_point<std::chrono::system_clock> start, end;
+	start = std::chrono::system_clock::now();
 	BreakthroughState st = static_cast<BreakthroughState&>(state);
-	
+	numMoves = st.getNumMoves();
 	//set our global variables
 	ourSymbol = GameState::who2str(getSide()) == "HOME" ? 'W' : 'B';
 	home = ourSymbol == 'W' ? true : false;
 	
 	BreakthroughMove* finalMove;
-
-	std::pair<int, BreakthroughMove> move = negaMax(st, depthLimit, 0, INT_MIN, INT_MAX);
-	/*if (state.moveOK(std::get<1>(move)))
-		std::cout << "MOVE IS OK\n";
-
-	std::cout << "RIGHT BEFORE RETURN OF FINAL MOVE\n";*/
-	finalMove = new BreakthroughMove(std::get<1>(move));
-	//std::cout << finalMove->toString();
+	for (int i = 2; i <= depthLimit; i++) {
+		std::pair<int, BreakthroughMove> move = negaMax(st, i, 0, INT_MIN, INT_MAX);
+		end = std::chrono::system_clock::now();
+		std::chrono::duration<double> elapsed_seconds = end - start;
+		finalMove = new BreakthroughMove(std::get<1>(move));
+		if (numMoves < 6 && elapsed_seconds.count() > 5)  //WE WILL TWEAK THESE VALUES
+			return finalMove;
+		else if (numMoves < 23 && elapsed_seconds.count() > 9)
+			return finalMove;
+		else if (numMoves >= 23 && elapsed_seconds.count() > 6)
+			return finalMove;
+	}
+	numMoves++;
+	std::cout << "NUM MOVES: " << numMoves << std::endl;
 	return finalMove;
 }
 
@@ -247,7 +257,7 @@ AlphaBetaBreakThroughPlayer::evaluateBoard(BreakthroughState &brd) {
 	//very expensive to loop through board and evaluate all pieces. 
 	//If piece is winning, return right away. 
 	if (brd.checkTerminalUpdateStatus()) {
-		char winningSide;
+		//char winningSide;
 		char current;
 		//loop through end rows and determine if there is a piece
 		for (int i = 0; i < brd.COLS; i++) {
@@ -265,10 +275,8 @@ AlphaBetaBreakThroughPlayer::evaluateBoard(BreakthroughState &brd) {
 		}
 	}
 
-	int total = 0; int evalScore1 = 0; int evalScore2 = 0; int homeWinScore = 0;
-	int awayWinScore = 0; int homeEmptyColumns = 0; int awayEmptyColumns = 0; 
-	bool homeHasWinPiece = false; bool awayHasWinPiece = false;
-	int homePieces = 0; int awayPieces = 0; char player = brd.getCurPlayerSym();
+	int evalScore1 = 0; int evalScore2 = 0;
+	int homePieces = 0; int awayPieces = 0;
 	// Loop through the board and evaluate each piece on the board.
 	// Assign a value to the board based on the evaluation of Home and Away pieces.
 	// Count the number of Home and Away pieces.
@@ -276,21 +284,23 @@ AlphaBetaBreakThroughPlayer::evaluateBoard(BreakthroughState &brd) {
 		for (int col = 0; col < brd.COLS; col++) {
 			char current = brd.getCell(row, col); 
 			if (current == brd.HOMESYM) { //if it's our piece
-				evalScore1 += evaluatePiece(brd, current, row, col);
+				int scoreHome = evaluatePiece(brd, current, row, col);
+				evalScore1 += scoreHome;
 				homePieces++;
 			}
 			else if(current == brd.AWAYSYM) {
-				evalScore2 += evaluatePiece(brd, current, row, col);
+				int awayScore = evaluatePiece(brd, current, row, col);
+				evalScore2 += awayScore;
 				awayPieces++;
 			}
 		}
 	}
 	// Count the number of empty columns from Home perspective.
-	homeEmptyColumns = -numberOfEmptyColumns(brd, brd.HOMESYM)*10;
+	int homeEmptyColumns = -numberOfEmptyColumns(brd, brd.HOMESYM)*10;
 	// Count the number of empty columns from Away perspective.
-	awayEmptyColumns = -numberOfEmptyColumns(brd, brd.AWAYSYM)*10;
-	total = (evalScore1 + homeEmptyColumns) - (evalScore2 + awayEmptyColumns);
-	return player == 'W' ? total : -total;
+	int awayEmptyColumns = -numberOfEmptyColumns(brd, brd.AWAYSYM)*10;
+	int total = (evalScore1 + homeEmptyColumns) - (evalScore2 + awayEmptyColumns);
+	return brd.getCurPlayerSym() == 'W' ? total : -total;
 }
 
 std::pair<int, BreakthroughMove>
@@ -335,24 +345,24 @@ AlphaBetaBreakThroughPlayer::negaMax(BreakthroughState &brd, int maxDepth, int c
 
 
 	std::vector<BreakthroughMove> moves = getPossibleMoves(brd, sideToMove, currDepth);
-	for (BreakthroughMove move : moves) {
+	for (auto move : moves) {
 		BreakthroughState newBoard = brd;
 		newBoard.makeMove(move);
-		std::pair<int, BreakthroughMove> scoreAndMove = negaMax(newBoard, maxDepth, 
+		std::pair<int, BreakthroughMove> scoreAndMove = negaMax(newBoard, maxDepth,
 			currDepth + 1, -beta, -(std::max(alpha, bestScore)));
 		int currentScore = -scoreAndMove.first;
 
-		std::cout << "WHO MADE THE MOVE: " << sideToMove << "\n" << "CURRENT DEPTH: "
+		/*std::cout << "WHO MADE THE MOVE: " << sideToMove << "\n" << "CURRENT DEPTH: "
 			<< currDepth << std::endl;
 		std::cout << "MOVE BEING EXAMINED: " << move.toString() << std::endl;
-		std::cout << "SCORE OF ABOVE MOVE: " << currentScore << "\n" << std::endl;
+		std::cout << "SCORE OF ABOVE MOVE: " << currentScore << "\n" << std::endl;*/
 
 		if (currentScore > bestScore) {
 			bestScore = currentScore;
 			bestMove = move;
-			
+
 			//the pruning condition
-			if (bestScore >= beta)
+			if (bestScore >= beta && currDepth != 0)
 				return std::make_pair(bestScore, bestMove);
 		}
 	}
