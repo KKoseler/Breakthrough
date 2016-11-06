@@ -100,7 +100,7 @@ public:
 	* @param who the piece
 	* @return Zobrist key
 	*/
-	long zobristHash(char who);
+	long long zobristHash(char who);
 
 	/**
 	* Computes the best value of a position 
@@ -120,7 +120,7 @@ private:
 
 	int numMoves;
 
-	std::vector< std::vector< long > > zobristkeys;
+	std::vector< std::vector< long long > > zobristkeys;
 	TranspositionTable transTable;
 	TableEntry entry;
 

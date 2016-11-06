@@ -16,7 +16,7 @@ public:
 	* @param score the score.
 	* @param scoreType the scoreType.
 	*/
-	TableEntry(long zkey, BreakthroughMove move, int depth, int score, int min, int max){
+	TableEntry(long long zkey, BreakthroughMove move, int depth, int score, int min, int max){
 		this->zkey = zkey;
 		this->move = move;
 		this->depth = depth;
@@ -25,7 +25,7 @@ public:
 		this->max = max;
 	}
 
-	inline long  getKey() { return zkey; }
+	inline long long  getKey() { return zkey; }
 	inline BreakthroughMove  getMove() { return move; }
 	inline int getDepth() { return depth; }
 	inline int getScore() { return score; }
@@ -33,7 +33,7 @@ public:
 	inline int getMax(){ return max; }
 
 private:
-	long zkey;
+	long long zkey;
 	BreakthroughMove move;
 	int depth;
 	int score;
@@ -61,14 +61,14 @@ public:
 	* @param min the min
 	* @param max the max score
 	*/
-	void insert(long zkey, BreakthroughMove move, int depth, int score, int min, int max);
+	void insert(long long zkey, BreakthroughMove move, int depth, int score, int min, int max);
 
 	/**
 	* Used to lookup entry in the table
 	* @param zkey the zorbist key
 	* @return the table entry
 	*/
-	TableEntry& lookup(long zkey);
+	TableEntry& lookup(long long zkey);
 
 private:
 	std::vector<TableEntry> table;

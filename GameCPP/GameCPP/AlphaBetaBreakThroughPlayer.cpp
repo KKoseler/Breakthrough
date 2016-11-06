@@ -3,6 +3,10 @@
 #include <algorithm>
 #include <chrono>
 #include <ctime>
+#include <random>
+#include <cfenv>
+#include <climits>
+#include <cmath>
 
 AlphaBetaBreakThroughPlayer::AlphaBetaBreakThroughPlayer(std::string nickname, int d)
 	: GamePlayer(nickname, "Breakthrough"), depthLimit(d) {
@@ -13,11 +17,11 @@ AlphaBetaBreakThroughPlayer::AlphaBetaBreakThroughPlayer(std::string nickname, i
 	std::mt19937 engine(random());
 	double lower = std::pow(2, 61);
 	double upper = std::pow(2, 62);
-	std::uniform_int_distribution<long>distribution(std::lround(lower), std::lround(upper));
-	std::vector<std::vector<long> >zobrist(2, std::vector<long>(64));
+	std::uniform_int_distribution<long long>distribution(std::llround(lower), std::llround(upper));
+	std::vector<std::vector<long long> >zobrist(2, std::vector<long long>(64));
 	zobristkeys = zobrist;
-	for (int i = 0; i < 2; i++) {
-		for (int j = 0; j < 64; j++) {
+	for (size_t i = 0; i < 2; i++) {
+		for (size_t j = 0; j < 64; j++) {
 			zobristkeys[i][j] = distribution(engine);
 		}
 	}
@@ -316,10 +320,10 @@ AlphaBetaBreakThroughPlayer::evaluateBoard(BreakthroughState &brd) {
 	return brd.getCurPlayerSym() == 'W' ? total : -total;
 }
 
-long
+long long
 AlphaBetaBreakThroughPlayer::zobristHash(char who) {
-	long hash = 0;
-	for (int i = 0; i < 64; i++) {
+	long long hash = 0;
+	for (size_t i = 0; i < 64; i++) {
 		if (who == 'W') {
 			hash ^= zobristkeys[0][i];
 		}
@@ -376,6 +380,7 @@ AlphaBetaBreakThroughPlayer::negaMax(BreakthroughState &brd, int maxDepth, int c
 	for (auto move : moves) {
 		BreakthroughState newBoard = brd;
 		newBoard.makeMove(move);
+
 		std::pair<int, BreakthroughMove> scoreAndMove = negaMax(newBoard, maxDepth, currDepth + 1, -beta, -(std::max(alpha, bestScore)));
 		int currentScore = -scoreAndMove.first;
 
