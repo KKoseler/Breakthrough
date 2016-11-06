@@ -18,14 +18,15 @@ AlphaBetaBreakThroughPlayer::AlphaBetaBreakThroughPlayer(std::string nickname, i
 	double lower = std::pow(2, 61);
 	double upper = std::pow(2, 62);
 	std::uniform_int_distribution<long long>distribution(std::llround(lower), std::llround(upper));
-	std::vector<std::vector<long long> >zobrist(2, std::vector<long long>(64));
+	std::vector<std::vector<std::vector<long long> > > zobrist(2, std::vector<std::vector<long long> >(8, std::vector<long long>(64)));
 	zobristkeys = zobrist;
-	for (size_t i = 0; i < 2; i++) {
-		for (size_t j = 0; j < 64; j++) {
-			zobristkeys[i][j] = distribution(engine);
+	for (size_t k = 0; k < 2; k++) {
+		for (size_t i = 0; i < 8; i++) {
+			for (size_t j = 0; j < 8; j++) {
+				zobristkeys[k][i][j] = distribution(engine);
+			}
 		}
 	}
-
 }
 
 GameMove* 
@@ -321,14 +322,16 @@ AlphaBetaBreakThroughPlayer::evaluateBoard(BreakthroughState &brd) {
 }
 
 long long
-AlphaBetaBreakThroughPlayer::zobristHash(char who) {
+AlphaBetaBreakThroughPlayer::zobristHash(BreakthroughState &brd) {
 	long long hash = 0;
-	for (size_t i = 0; i < 64; i++) {
-		if (who == 'W') {
-			hash ^= zobristkeys[0][i];
-		}
-		else if (who == 'B')  {
-			hash ^= zobristkeys[1][i];
+	for (int i = 0; i < brd.ROWS; i++) {
+		for (int j = 0; j < brd.COLS; j++) {
+			if (brd.getCell(i, j) == 'W') {
+				hash ^= zobristkeys[0][i][j];
+			}
+			else if (brd.getCell(i, j) == 'B')  {
+				hash ^= zobristkeys[1][i][j];
+			}
 		}
 	}
 	return hash;
@@ -380,7 +383,6 @@ AlphaBetaBreakThroughPlayer::negaMax(BreakthroughState &brd, int maxDepth, int c
 	for (auto move : moves) {
 		BreakthroughState newBoard = brd;
 		newBoard.makeMove(move);
-
 		std::pair<int, BreakthroughMove> scoreAndMove = negaMax(newBoard, maxDepth, currDepth + 1, -beta, -(std::max(alpha, bestScore)));
 		int currentScore = -scoreAndMove.first;
 

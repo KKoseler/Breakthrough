@@ -97,10 +97,10 @@ public:
 
 	/**
 	* A hash function that generates a Zobrist key for moves
-	* @param who the piece
+	* @param brd the board state
 	* @return Zobrist key
 	*/
-	long long zobristHash(char who);
+	long long zobristHash(BreakthroughState & brd);
 
 	/**
 	* Computes the best value of a position 
@@ -120,7 +120,7 @@ private:
 
 	int numMoves;
 
-	std::vector< std::vector< long long > > zobristkeys;
+	std::vector<std::vector<std::vector<long long> > > zobristkeys;
 	TranspositionTable transTable;
 	TableEntry entry;
 

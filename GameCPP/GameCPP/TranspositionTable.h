@@ -1,6 +1,7 @@
 #include <random>
 #include <cmath>
 #include "BreakthroughMove.h"
+#include <iostream>
 
 class TableEntry{
 
@@ -25,12 +26,25 @@ public:
 		this->max = max;
 	}
 
-	inline long long  getKey() { return zkey; }
-	inline BreakthroughMove  getMove() { return move; }
-	inline int getDepth() { return depth; }
-	inline int getScore() { return score; }
-	inline int getMin(){ return min; }
-	inline int getMax(){ return max; }
+	inline long long getKey() const { return zkey; }
+	inline BreakthroughMove getMove() const { return move; }
+	inline int getDepth() const { return depth; }
+	inline int getScore() const { return score; }
+	inline int getMin() const { return min; }
+	inline int getMax() const { return max; }
+
+	/* For debugging purpose 
+	 * "std::cout << entry << std::endl" or 
+	 * "std::cout << table[entry]" << std::endl; 
+	 */
+	friend std::ostream& operator<<(std::ostream& os, TableEntry entry) {
+		os  << "Key: " << entry.getKey() << ", "
+			<< "Depth: " << entry.getDepth() << ", "
+			<< "Score: " << entry.getScore() << ", "
+			<< "Min: " << entry.getMin() << ", "
+			<< "Max: " << entry.getMax() << " ";
+		return os;
+	}
 
 private:
 	long long zkey;
@@ -68,8 +82,8 @@ public:
 	* @param zkey the zorbist key
 	* @return the table entry
 	*/
-	TableEntry& lookup(long long zkey);
+	TableEntry* lookup(long long zkey);
 
 private:
-	std::vector<TableEntry> table;
+	std::vector<TableEntry*> table;
 };
