@@ -4,22 +4,28 @@
 #include "TranspositionTable.h"
 
 void
-TranspositionTable::insert(long long zkey, BreakthroughMove move, int depth, int score, int min, int max) {
-	TableEntry entry(zkey, move, depth, score, min, max);
+TranspositionTable::insert(TableEntry &entry) {
+	
+	int index = (int)(entry.getKey()%TABLE_SIZE);
 
-	int index = (int)(zkey%TABLE_SIZE);
-	table[index] = &entry;
+	if (table[index] != NULL) {
+		//we replace if the potential replacement is deeper than the current entry
+		if (entry.getDepth() > table[index]->getDepth())
+			table[index] = &entry;
+	}
+	else
+		table[index] = &entry;
 	//std::cout << entry << std::endl;
 }
 
 TableEntry*
 TranspositionTable::lookup(long long zkey) {
 	int index = (int)(zkey%TABLE_SIZE);
-	if (table[index]->getKey() == zkey) {
+	if (table[index] != NULL && table[index]->getKey() == zkey) {
 		return table[index];
 	}
 	else {
-		nullptr;
+		return nullptr;
 	}
 }
 

@@ -106,11 +106,10 @@ public:
 	* Computes the best value of a position 
 	* @param brd the game state
 	* @param currDepth the current depth
-	* @param alpha the alpha value
-	* @param beta the beta value
+	* @param gamma the gamma value
 	* @return the best move, and moves have values attached as member fields
 	*/
-	std::pair<int, BreakthroughMove> negaMax(BreakthroughState & brd, int maxDepth, int currDepth, int alpha, int beta);
+	std::pair<int, BreakthroughMove> test(BreakthroughState & brd, int maxDepth, int currDepth, int gamma);
 
 private:
 	std::vector<BreakthroughMove> mvStack;

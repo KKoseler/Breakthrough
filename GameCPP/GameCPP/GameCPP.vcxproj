@@ -25,6 +25,7 @@
     <ClCompile Include="Params.cpp" />
     <ClCompile Include="RandomBreakthroughPlayer.cpp" />
     <ClCompile Include="RandomDomineeringPlayer.cpp" />
+    <ClCompile Include="TranspositionTable.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AlphaBetaBreakthroughPlayer.h" />
@@ -46,6 +47,7 @@
     <ClInclude Include="Params.h" />
     <ClInclude Include="RandomBreakthroughPlayer.h" />
     <ClInclude Include="RandomDomineeringPlayer.h" />
+    <ClInclude Include="TranspositionTable.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="bt1.txt" />

@@ -15,6 +15,9 @@
 class DoublePosBoardGameMove : public BoardGameMove {
 public:
     
+	bool isCaptureForW = false;
+	bool isCaptureForB = false;
+
     inline DoublePosBoardGameMove() : BoardGameMove(2) {}
     
     inline DoublePosBoardGameMove(int r1, int c1, int r2, int c2)

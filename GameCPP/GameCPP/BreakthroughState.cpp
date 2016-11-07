@@ -24,7 +24,10 @@ BreakthroughState::BreakthroughState() : BoardGameState
 	getBreakthroughParams().intValue("COLS"),
 	getBreakthroughParams().charValue("HOMESYM"),
 	getBreakthroughParams().charValue("AWAYSYM"),
-	getBreakthroughParams().charValue("EMPTYSYM")) {}
+	getBreakthroughParams().charValue("EMPTYSYM")) 
+{
+	hashVal = 0;
+}
 
 bool BreakthroughState::moveOK(const GameMove &gm) const {
 	
@@ -47,6 +50,35 @@ bool BreakthroughState::moveOK(const GameMove &gm) const {
 				(std::abs(colDiff) == 1 && board[mv.row2()*COLS + mv.col2()] != playerSymbol);
 	}
     return false;
+}
+
+bool BreakthroughState::makeMove(const BreakthroughMove & gm, std::vector<std::vector<std::vector<long long>>>& zobrist)
+{
+	//if we've already calculated a hash value update it incrementally
+	//otherwise, it will be calculated at another point
+	if (hashVal != 0) {
+		int oldRow = gm.row1();
+		int newRow = gm.row2();
+		int oldCol = gm.col1();
+		int newCol = gm.col2();
+		int pieceIndex = this->getCurPlayerSym() == 'W' ? 0 : 1;
+		hashVal ^= zobrist[pieceIndex][oldRow][oldCol];
+		hashVal ^= zobrist[pieceIndex][newRow][newCol];
+		//if it's a capture for black, remove the white piece
+		if (gm.isCaptureForB) {
+			hashVal ^= zobrist[0][newRow][newCol];
+		}
+		//if it's a capture for white, remove the black piece
+		else if (gm.isCaptureForW) {
+			hashVal ^= zobrist[1][newRow][newCol];
+		}
+	}
+	return GameState::makeMove(gm, false, false);
+}
+
+bool BreakthroughState::makeMove(const BreakthroughMove & gm)
+{
+	return GameState::makeMove(gm);
 }
 
 void BreakthroughState::thisGameMakeMove(const GameMove &gm) {

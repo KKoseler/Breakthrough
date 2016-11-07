@@ -23,8 +23,16 @@ public:
     static GameState* create();
     
     bool moveOK(const GameMove &gm) const override;
+
+	virtual bool makeMove(const BreakthroughMove &gm, 
+		std::vector<std::vector<std::vector<long long>>> & zobrist);
     
+	virtual bool makeMove(const BreakthroughMove &gm);
+
 	BreakthroughState();
+
+	long long hashVal;
+
 
 private:
         

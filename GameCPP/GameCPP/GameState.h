@@ -97,7 +97,7 @@ public:
      * @return true if move was successfully performed
      */
     virtual bool makeMove(const GameMove &gm, bool checkValidMove = true,
-                          bool checkTerminal = true) final;
+                          bool checkTerminal = true);
     
     /**
      * check if the game reaches terminal and update the status correspondingly

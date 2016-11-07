@@ -41,11 +41,13 @@ AlphaBetaBreakThroughPlayer::getMove(GameState &state,
 	home = ourSymbol == 'W' ? true : false;
 	
 	BreakthroughMove* finalMove;
+	int guess = 0;
 	for (int i = 2; i <= depthLimit; i++) {
-		std::pair<int, BreakthroughMove> move = negaMax(st, i, 0, INT_MIN, INT_MAX);
+		std::pair<int, BreakthroughMove> move = test(st, i, 0, guess);
+		guess = std::get<0>(move);
+		finalMove = new BreakthroughMove(std::get<1>(move));
 		end = std::chrono::system_clock::now();
 		std::chrono::duration<double> elapsed_seconds = end - start;
-		finalMove = new BreakthroughMove(std::get<1>(move));
 		if (numMoves < 6 && elapsed_seconds.count() > 5)  //WE WILL TWEAK THESE VALUES
 			return finalMove;
 		else if (numMoves < 23 && elapsed_seconds.count() > 9)
@@ -323,28 +325,47 @@ AlphaBetaBreakThroughPlayer::evaluateBoard(BreakthroughState &brd) {
 
 long long
 AlphaBetaBreakThroughPlayer::zobristHash(BreakthroughState &brd) {
-	long long hash = 0;
-	for (int i = 0; i < brd.ROWS; i++) {
-		for (int j = 0; j < brd.COLS; j++) {
-			if (brd.getCell(i, j) == 'W') {
-				hash ^= zobristkeys[0][i][j];
-			}
-			else if (brd.getCell(i, j) == 'B')  {
-				hash ^= zobristkeys[1][i][j];
+	//only do this if we don't already have a hash for this position
+	if (brd.hashVal == 0) {
+		long long hash = 0;
+		for (int i = 0; i < brd.ROWS; i++) {
+			for (int j = 0; j < brd.COLS; j++) {
+				if (brd.getCell(i, j) == 'W') {
+					hash ^= zobristkeys[0][i][j];
+				}
+				else if (brd.getCell(i, j) == 'B') {
+					hash ^= zobristkeys[1][i][j];
+				}
 			}
 		}
+		return hash;
 	}
-	return hash;
+	//return what we already have in the board
+	else
+		return brd.hashVal;
 }
 
 std::pair<int, BreakthroughMove>
-AlphaBetaBreakThroughPlayer::negaMax(BreakthroughState &brd, int maxDepth, int currDepth, int alpha, int beta) {
+AlphaBetaBreakThroughPlayer::test(BreakthroughState &brd, int maxDepth, int currDepth, int gamma) {
 	
+	TableEntry *entry = transTable.lookup(zobristHash(brd));
+	if (entry && entry->getDepth() > (maxDepth - currDepth)) {
+		
+		//We leave early for stored positions
+		if (entry->getMin() > gamma)
+			return std::make_pair(entry->getMin(), entry->getMove());
+		if (entry->getMax() < gamma)
+			return std::make_pair(entry->getMax(), entry->getMove());
+	}
+	else {
+		//we must create the entry, at first with an invalid move
+		entry = &TableEntry(zobristHash(brd), BreakthroughMove(-1, -1, -1, -1),
+			maxDepth - currDepth, INT_MIN, INT_MAX);
+	}
+
 	//check if we're done recursing
 	bool terminalState = brd.checkTerminalUpdateStatus();
 	if (terminalState || currDepth == maxDepth) {
-		/*std::cout << "END OF RECURSION \n" << brd.toDisplayStr() << "\nSCORE OF ABOVE: " 
-			<< evaluateBoard(brd) << "\n" << std::endl;*/
 		int eval = evaluateBoard(brd);
 		
 		//PENALIZE DEEPER WINS
@@ -354,7 +375,11 @@ AlphaBetaBreakThroughPlayer::negaMax(BreakthroughState &brd, int maxDepth, int c
 			else
 				eval -= (currDepth * 26);
 		}
-		return std::make_pair(eval, BreakthroughMove(-1, -1, -1, -1));
+
+		entry->setMin(eval);
+		entry->setMax(eval);
+		transTable.insert(*entry);
+		return std::make_pair(entry->getMin(), BreakthroughMove(-1, -1, -1, -1));
 	}
 
 	BreakthroughMove bestMove;
@@ -382,8 +407,10 @@ AlphaBetaBreakThroughPlayer::negaMax(BreakthroughState &brd, int maxDepth, int c
 	std::vector<BreakthroughMove> moves = getPossibleMoves(brd, sideToMove, currDepth);
 	for (auto move : moves) {
 		BreakthroughState newBoard = brd;
-		newBoard.makeMove(move);
-		std::pair<int, BreakthroughMove> scoreAndMove = negaMax(newBoard, maxDepth, currDepth + 1, -beta, -(std::max(alpha, bestScore)));
+		newBoard.makeMove(move, zobristkeys);
+
+		//recurse
+		std::pair<int, BreakthroughMove> scoreAndMove = test(newBoard, maxDepth, currDepth + 1, -gamma);
 		int currentScore = -scoreAndMove.first;
 
 		/*std::cout << "WHO MADE THE MOVE: " << sideToMove << "\n" << "CURRENT DEPTH: "
@@ -392,17 +419,24 @@ AlphaBetaBreakThroughPlayer::negaMax(BreakthroughState &brd, int maxDepth, int c
 		std::cout << "SCORE OF ABOVE MOVE: " << currentScore << "\n" << std::endl;*/
 
 		if (currentScore > bestScore) {
+			entry->setMove(move);
 			bestScore = currentScore;
 			bestMove = move;
-
-			//the pruning condition
-			if (bestScore >= beta && currDepth != 0)
-				return std::make_pair(bestScore, bestMove);
 		}
 	}
+
+	//if we prune, we have a min score, otherwise we have a max score
+	if (bestScore < gamma)
+		entry->setMax(bestScore);
+	else
+		entry->setMin(bestScore);
+	
+	//debug stuff
 	/*std::cout << "CURRENT DEPTH: " << currDepth << std::endl;
 	std::cout << "CURRENT PLAYER: " << sideToMove << std::endl;
 	std::cout << "BEST MOVE: " << bestMove.toString() << std::endl;
 	std::cout << "SCORE OF ABOVE MOVE: " << bestScore << "\n" << std::endl;*/
+	
+	transTable.insert(*entry);
 	return std::make_pair(bestScore, bestMove);
 }
