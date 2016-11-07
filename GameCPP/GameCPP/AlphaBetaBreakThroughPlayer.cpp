@@ -27,15 +27,19 @@ AlphaBetaBreakThroughPlayer::AlphaBetaBreakThroughPlayer(std::string nickname, i
 			}
 		}
 	}
+	transTable = TranspositionTable();
 }
 
 GameMove* 
 AlphaBetaBreakThroughPlayer::getMove(GameState &state,
 	const std::string &lastMv) {
+	
 	std::chrono::time_point<std::chrono::system_clock> start, end;
 	start = std::chrono::system_clock::now();
+	
 	BreakthroughState st = static_cast<BreakthroughState&>(state);
 	numMoves = st.getNumMoves();
+	
 	//set our global variables
 	ourSymbol = GameState::who2str(getSide()) == "HOME" ? 'W' : 'B';
 	home = ourSymbol == 'W' ? true : false;
@@ -43,11 +47,22 @@ AlphaBetaBreakThroughPlayer::getMove(GameState &state,
 	BreakthroughMove* finalMove;
 	int guess = 0;
 	for (int i = 2; i <= depthLimit; i++) {
-		std::pair<int, BreakthroughMove> move = test(st, i, 0, guess);
+		nodesSearched = 0;
+		lowerBoundCuts = 0;
+		upperBoundCuts = 0;
+		std::pair<int, BreakthroughMove> move = mtd(st, i, guess);
 		guess = std::get<0>(move);
 		finalMove = new BreakthroughMove(std::get<1>(move));
+		
 		end = std::chrono::system_clock::now();
 		std::chrono::duration<double> elapsed_seconds = end - start;
+		std::cout << "NUMBER OF NODES SEARCHED AT DEPTH: " << i << "\n"
+			<< nodesSearched << std::endl;
+		std::cout << "NUMBER OF UPPER CUTS AT DEPTH: " << i << "\n"
+			<< upperBoundCuts << std::endl;
+		std::cout << "NUMBER OF LOWER CUTS AT DEPTH: " << i << "\n"
+			<< lowerBoundCuts << std::endl;
+
 		if (numMoves < 6 && elapsed_seconds.count() > 5)  //WE WILL TWEAK THESE VALUES
 			return finalMove;
 		else if (numMoves < 23 && elapsed_seconds.count() > 9)
@@ -58,6 +73,19 @@ AlphaBetaBreakThroughPlayer::getMove(GameState &state,
 	numMoves++;
 	std::cout << "NUM MOVES: " << numMoves << std::endl;
 	return finalMove;
+}
+
+std::pair<int, BreakthroughMove> AlphaBetaBreakThroughPlayer::mtd(BreakthroughState & brd, int maxDepth, int guess)
+{
+	std::pair<int, BreakthroughMove> toReturn;
+	for (int i = 0; i < 2; i++) {
+		int gamma = guess;
+		std::pair<int, BreakthroughMove> guessAndMove = test(brd, maxDepth, 0, gamma - 5);
+		toReturn = guessAndMove;
+		if (gamma = toReturn.first)
+			break;
+	}
+	return toReturn;
 }
 
 //Don't think the GameState from AlphaBetaPlayer is necessary here, no need to evaluate
@@ -285,13 +313,13 @@ AlphaBetaBreakThroughPlayer::evaluateBoard(BreakthroughState &brd) {
 			current = brd.getCell(0, i);
 			//black has a victory
 			if (current == 'B')
-				return brd.getCurPlayerSym() == 'W' ? -5000 : 5000;
+				return brd.getCurPlayerSym() == 'W' ? -50000 : 50000;
 			
 			//check away's row
 			current = brd.getCell(7, i);
 			//white has a victory
 			if (current == 'W')
-				return brd.getCurPlayerSym() == 'W' ? 5000 : -5000;
+				return brd.getCurPlayerSym() == 'W' ? 50000 : -50000;
 		}
 	}
 
@@ -320,6 +348,7 @@ AlphaBetaBreakThroughPlayer::evaluateBoard(BreakthroughState &brd) {
 	// Count the number of empty columns from Away perspective.
 	int awayEmptyColumns = -numberOfEmptyColumns(brd, brd.AWAYSYM)*10;
 	int total = (evalScore1 + homeEmptyColumns) - (evalScore2 + awayEmptyColumns);
+	total *= 20;
 	return brd.getCurPlayerSym() == 'W' ? total : -total;
 }
 
@@ -338,6 +367,7 @@ AlphaBetaBreakThroughPlayer::zobristHash(BreakthroughState &brd) {
 				}
 			}
 		}
+		brd.hashVal = hash;
 		return hash;
 	}
 	//return what we already have in the board
@@ -347,20 +377,31 @@ AlphaBetaBreakThroughPlayer::zobristHash(BreakthroughState &brd) {
 
 std::pair<int, BreakthroughMove>
 AlphaBetaBreakThroughPlayer::test(BreakthroughState &brd, int maxDepth, int currDepth, int gamma) {
-	
-	TableEntry *entry = transTable.lookup(zobristHash(brd));
-	if (entry && entry->getDepth() > (maxDepth - currDepth)) {
-		
-		//We leave early for stored positions
-		if (entry->getMin() > gamma)
-			return std::make_pair(entry->getMin(), entry->getMove());
-		if (entry->getMax() < gamma)
-			return std::make_pair(entry->getMax(), entry->getMove());
+	nodesSearched++;
+	TableEntry *entry = NULL;
+	long long boardHashValue = zobristHash(brd);
+	entry = transTable.lookup(boardHashValue);
+	if (entry != NULL) 
+	{
+		std::cout << "ENTRY EXISTS!!" << std::endl;
+		if (entry->getDepth() > (maxDepth - currDepth)) {
+			std::cout << "MET THE CUTTING CONDITION!" << std::endl;
+			//We leave early for stored positions
+			if (entry->getMin() > gamma) {
+				lowerBoundCuts++;
+				return std::make_pair(entry->getMin(), entry->getMove());
+			}
+			if (entry->getMax() < gamma) {
+				upperBoundCuts++;
+				return std::make_pair(entry->getMax(), entry->getMove());
+			}
+		}
 	}
 	else {
 		//we must create the entry, at first with an invalid move
-		entry = &TableEntry(zobristHash(brd), BreakthroughMove(-1, -1, -1, -1),
+		TableEntry e(zobristHash(brd), BreakthroughMove(-1, -1, -1, -1),
 			maxDepth - currDepth, INT_MIN, INT_MAX);
+		entry = &e;
 	}
 
 	//check if we're done recursing
@@ -368,13 +409,13 @@ AlphaBetaBreakThroughPlayer::test(BreakthroughState &brd, int maxDepth, int curr
 	if (terminalState || currDepth == maxDepth) {
 		int eval = evaluateBoard(brd);
 		
-		//PENALIZE DEEPER WINS
+		/*//PENALIZE DEEPER WINS
 		if (terminalState) {
 			if ((currDepth - 1) % 2 == 0)
 				eval += (currDepth * 26);
 			else
 				eval -= (currDepth * 26);
-		}
+		}*/
 
 		entry->setMin(eval);
 		entry->setMax(eval);
@@ -405,9 +446,17 @@ AlphaBetaBreakThroughPlayer::test(BreakthroughState &brd, int maxDepth, int curr
 
 
 	std::vector<BreakthroughMove> moves = getPossibleMoves(brd, sideToMove, currDepth);
-	for (auto move : moves) {
+	/*for (auto move : moves) {
+		BreakthroughState sortBoard = brd;
+		sortBoard.makeMove(move);
+		move.moveOrderVal = evaluateBoard(sortBoard);
+	}
+	std::sort(moves.begin(), moves.end(), [](BreakthroughMove a, BreakthroughMove b)
+	{return a.moveOrderVal > b.moveOrderVal; });*/
+	for (BreakthroughMove move : moves) {
 		BreakthroughState newBoard = brd;
 		newBoard.makeMove(move, zobristkeys);
+		//newBoard.makeMove(move);
 
 		//recurse
 		std::pair<int, BreakthroughMove> scoreAndMove = test(newBoard, maxDepth, currDepth + 1, -gamma);

@@ -7,7 +7,7 @@ class TableEntry{
 
 public:
 
-	TableEntry(){ ; }
+	TableEntry(){ zkey = 0; }
 
 	/**
 	* Used to create an entry into the transposition table
@@ -30,7 +30,7 @@ public:
 	inline int getDepth() const { return depth; }
 	inline int getMin() const { return min; }
 	inline int getMax() const { return max; }
-	inline void setKey(long long zkey) { this->zkey = zkey; }
+	inline void setKey(long long newkey) { this->zkey = newkey; }
 	inline void setMove(BreakthroughMove moveSet) { this->move = moveSet; }
 	inline void setDepth(int newDepth) { this->depth = newDepth; }
 	inline void setMin(int newMin) { this->min = newMin; }
@@ -56,7 +56,7 @@ private:
 	int max;
 };
 
-const int TABLE_SIZE = 17458;
+const int TABLE_SIZE = 174583;
 
 class TranspositionTable {
 
@@ -65,7 +65,7 @@ public:
 	/**
 	* Used to create a transposition table
 	*/
-	TranspositionTable() { table.resize(TABLE_SIZE);}
+	TranspositionTable() { table = std::vector<TableEntry*>(TABLE_SIZE);}
 
 	/**
 	* Used to insert move positions in the table
@@ -79,6 +79,8 @@ public:
 	* @return the table entry
 	*/
 	TableEntry* lookup(long long zkey);
+
+	int size() { return table.size(); }
 
 private:
 	std::vector<TableEntry*> table;

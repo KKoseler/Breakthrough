@@ -28,6 +28,8 @@ public:
 	*/
 	GameMove *getMove(GameState &state, const std::string &lastMv) override;
 
+	std::pair<int, BreakthroughMove> mtd(BreakthroughState & brd, int maxDepth, int guess);
+
 	std::vector<BreakthroughMove> getPossibleMoves(BreakthroughState &st, char sideToMove, int currentDepth);
 
 	/**
@@ -118,9 +120,11 @@ private:
 	bool home;
 
 	int numMoves;
+	int nodesSearched;
+	int lowerBoundCuts;
+	int upperBoundCuts;
 
 	std::vector<std::vector<std::vector<long long> > > zobristkeys;
 	TranspositionTable transTable;
-	TableEntry entry;
 
 };

@@ -17,6 +17,7 @@ public:
     
 	bool isCaptureForW = false;
 	bool isCaptureForB = false;
+	int moveOrderVal = 0;
 
     inline DoublePosBoardGameMove() : BoardGameMove(2) {}
     
