@@ -14,14 +14,14 @@ TranspositionTable::insert(TableEntry &entry) {
 			table[index] = &entry;
 	}
 	else*/
-	table[index] = &entry;
+	table[index] = entry;
 	//std::cout << entry << std::endl;
 }
 
-TableEntry*
+TableEntry
 TranspositionTable::lookup(long long zkey) {
 	int index = (int) (zkey%TABLE_SIZE);
-	if (table[index] != NULL && table[index]->getKey() == zkey) {
+	//if (key != 0 && key == zkey) {
 		/*if (table[index]->getKey() == zkey)
 			return table[index];
 		else {
@@ -31,8 +31,8 @@ TranspositionTable::lookup(long long zkey) {
 		}*/
 		return table[index];
 	}
-	else {
-		return nullptr;
-	}
-}
+	//else {
+		//return nullptr;
+	//}
+
 

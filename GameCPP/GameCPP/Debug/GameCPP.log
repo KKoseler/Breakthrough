@@ -1,3 +1,4 @@
 ﻿  AlphaBetaBreakThroughPlayer.cpp
+c:\users\kaan\documents\github\breakthrough\gamecpp\gamecpp\transpositiontable.h(71): warning C4018: '<': signed/unsigned mismatch
   GameCPP.vcxproj -> C:\Users\Kaan\Documents\GitHub\Breakthrough\GameCPP\Debug\GameCPP.exe
   GameCPP.vcxproj -> C:\Users\Kaan\Documents\GitHub\Breakthrough\GameCPP\Debug\GameCPP.pdb (Full PDB)

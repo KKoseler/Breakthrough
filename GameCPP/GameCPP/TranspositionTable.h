@@ -65,7 +65,13 @@ public:
 	/**
 	* Used to create a transposition table
 	*/
-	TranspositionTable() { table = std::vector<TableEntry*>(TABLE_SIZE);}
+	TranspositionTable() 
+	{ 
+		table = std::vector<TableEntry>(TABLE_SIZE);
+		for (int i = 0; i < table.size(); i++) {
+			table[i] = TableEntry();
+		}
+	}
 
 	/**
 	* Used to insert move positions in the table
@@ -78,10 +84,10 @@ public:
 	* @param zkey the zorbist key
 	* @return the table entry
 	*/
-	TableEntry* lookup(long long zkey);
+	TableEntry lookup(long long zkey);
 
 	int size() { return table.size(); }
 
 private:
-	std::vector<TableEntry*> table;
+	std::vector<TableEntry> table;
 };

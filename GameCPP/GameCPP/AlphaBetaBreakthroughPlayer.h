@@ -125,6 +125,6 @@ private:
 	int upperBoundCuts;
 
 	std::vector<std::vector<std::vector<long long> > > zobristkeys;
-	TranspositionTable transTable;
+	TranspositionTable table;
 
 };
