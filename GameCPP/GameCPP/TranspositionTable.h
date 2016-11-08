@@ -7,7 +7,11 @@ class TableEntry{
 
 public:
 
-	TableEntry(){ zkey = 0; }
+	TableEntry()
+	{ 
+		zkey = 0; 
+		move = BreakthroughMove(-1, -1, -1, -1);
+	}
 
 	/**
 	* Used to create an entry into the transposition table
@@ -17,46 +21,46 @@ public:
 	* @param score the score.
 	* @param scoreType the scoreType.
 	*/
-	TableEntry(long long zkey, BreakthroughMove move, int depth, int min, int max){
+	TableEntry(long long zkey, BreakthroughMove & move, int depth, int score, short type){
 		this->zkey = zkey;
 		this->move = move;
 		this->depth = depth;
-		this->min = min;
-		this->max = max;
+		this->score = score;
+		this->type = type;
 	}
 
 	inline long long getKey() const { return zkey; }
 	inline BreakthroughMove getMove() const { return move; }
 	inline int getDepth() const { return depth; }
-	inline int getMin() const { return min; }
-	inline int getMax() const { return max; }
-	inline void setKey(long long newkey) { this->zkey = newkey; }
-	inline void setMove(BreakthroughMove moveSet) { this->move = moveSet; }
+	inline int getScore() const { return score; }
+	inline short getType() const { return type; }
+	inline void setKey(long long & newkey) { this->zkey = newkey; }
+	inline void setMove(BreakthroughMove & moveSet) { this->move = moveSet; }
 	inline void setDepth(int newDepth) { this->depth = newDepth; }
-	inline void setMin(int newMin) { this->min = newMin; }
-	inline void setMax(int newMax) { this->max = newMax; }
+	inline void setScore(int newScore) { this->score = newScore; }
+	inline void setType(int newType) { this->type = newType; }
 
 	/* For debugging purpose 
 	 * "std::cout << entry << std::endl" or 
 	 * "std::cout << table[entry]" << std::endl; 
 	 */
-	friend std::ostream& operator<<(std::ostream& os, TableEntry entry) {
+	/*friend std::ostream& operator<<(std::ostream& os, TableEntry entry) {
 		os  << "Key: " << entry.getKey() << ", "
 			<< "Depth: " << entry.getDepth() << ", "
 			<< "Min: " << entry.getMin() << ", "
 			<< "Max: " << entry.getMax() << " ";
 		return os;
-	}
+	}*/
 
 private:
 	long long zkey;
 	BreakthroughMove move;
 	int depth;
-	int min;
-	int max;
+	int score;
+	short type;
 };
 
-const int TABLE_SIZE = 174583;
+const int TABLE_SIZE = 147453;
 
 class TranspositionTable {
 
@@ -68,7 +72,7 @@ public:
 	TranspositionTable() 
 	{ 
 		table = std::vector<TableEntry>(TABLE_SIZE);
-		for (int i = 0; i < table.size(); i++) {
+		for (unsigned int i = 0; i < table.size(); i++) {
 			table[i] = TableEntry();
 		}
 	}
@@ -84,7 +88,7 @@ public:
 	* @param zkey the zorbist key
 	* @return the table entry
 	*/
-	TableEntry lookup(long long zkey);
+	TableEntry* lookup(long long &zkey);
 
 	int size() { return table.size(); }
 

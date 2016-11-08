@@ -18,8 +18,8 @@ TranspositionTable::insert(TableEntry &entry) {
 	//std::cout << entry << std::endl;
 }
 
-TableEntry
-TranspositionTable::lookup(long long zkey) {
+TableEntry*
+TranspositionTable::lookup(long long &zkey) {
 	int index = (int) (zkey%TABLE_SIZE);
 	//if (key != 0 && key == zkey) {
 		/*if (table[index]->getKey() == zkey)
@@ -29,7 +29,8 @@ TranspositionTable::lookup(long long zkey) {
 				<< "Key that was passed: " << zkey << "\n" << "Index of entry: " << index 
 				<< "/n" << std::endl;
 		}*/
-		return table[index];
+	//std::cout << "HASHKEY: " << table[index].getKey() << std::endl;
+		return &table[index];
 	}
 	//else {
 		//return nullptr;

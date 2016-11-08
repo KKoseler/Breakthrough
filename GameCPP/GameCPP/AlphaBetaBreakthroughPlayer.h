@@ -111,7 +111,9 @@ public:
 	* @param gamma the gamma value
 	* @return the best move, and moves have values attached as member fields
 	*/
-	std::pair<int, BreakthroughMove> test(BreakthroughState & brd, int maxDepth, int currDepth, int gamma);
+	std::pair<int, BreakthroughMove> negaMax(BreakthroughState & brd, int maxDepth, int currDepth, int alpha, int beta);
+
+	std::vector<BreakthroughMove> orderMoves(std::vector<BreakthroughMove> & moves, TableEntry & entry, char sideToMove);
 
 private:
 	std::vector<BreakthroughMove> mvStack;
