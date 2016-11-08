@@ -45,20 +45,21 @@ AlphaBetaBreakThroughPlayer::getMove(GameState &state,
 	home = ourSymbol == 'W' ? true : false;
 	
 	BreakthroughMove* finalMove;
+	int previous = 0;
 	for (int i = 2; i <= depthLimit; i++) {
 		nodesSearched = 0;
 		lowerBoundCuts = 0;
 		upperBoundCuts = 0;
-		std::pair<int, BreakthroughMove> move = negaMax(st, i, 0, INT_MIN, INT_MAX);
-		//guess = std::get<0>(move);
+		std::pair<int, BreakthroughMove> move = aspiration(st, i, previous);
+		previous = std::get<0>(move);
 		finalMove = new BreakthroughMove(std::get<1>(move));
 		
 		end = std::chrono::system_clock::now();
 		std::chrono::duration<double> elapsed_seconds = end - start;
-		/*std::cout << "NUMBER OF NODES SEARCHED AT DEPTH: " << i << "\n"
+		std::cout << "NUMBER OF NODES SEARCHED AT DEPTH: " << i << "\n"
 			<< nodesSearched << std::endl;
 		
-		std::cout << "NUMBER OF UPPER CUTS AT DEPTH: " << i << "\n"
+		/*std::cout << "NUMBER OF UPPER CUTS AT DEPTH: " << i << "\n"
 			<< upperBoundCuts << std::endl;
 		std::cout << "NUMBER OF LOWER CUTS AT DEPTH: " << i << "\n"
 			<< lowerBoundCuts << std::endl;*/
@@ -75,18 +76,21 @@ AlphaBetaBreakThroughPlayer::getMove(GameState &state,
 	return finalMove;
 }
 
-/*std::pair<int, BreakthroughMove> AlphaBetaBreakThroughPlayer::mtd(BreakthroughState & brd, int maxDepth, int previous)
+std::pair<int, BreakthroughMove> AlphaBetaBreakThroughPlayer::aspiration(BreakthroughState & brd, int maxDepth, int previous)
 {
 	std::pair<int, BreakthroughMove> toReturn;
-	for (int i = 0; i < 500; i++) {
-		int gamma = guess;
-		std::pair<int, BreakthroughMove> guessAndMove = test(brd, maxDepth, 0, gamma - 1);
-		toReturn = guessAndMove;
-		if (gamma = toReturn.first)
-			break;
+	int alpha = previous - 1;
+	int beta = previous + 1;
+	while (true) {
+		toReturn = negaMax(brd, maxDepth, 0, alpha, beta);
+		if (toReturn.first <= alpha)
+			alpha = INT_MIN;
+		else if (toReturn.first >= beta)
+			beta = INT_MAX;
+		else
+			return toReturn;
 	}
-	return toReturn;
-}*/
+}
 
 //Don't think the GameState from AlphaBetaPlayer is necessary here, no need to evaluate
 //if move is acceptable
@@ -104,17 +108,24 @@ std::vector<BreakthroughMove> AlphaBetaBreakThroughPlayer::getPossibleMoves
 			if (current == sideToMove) { //only get moves if piece is of side to move
 				for (int dc = -1; dc <= +1; dc++) {
 					if (st.posOK(r + rowDelta, c + dc)) {
-						char potentialMove = st.getCell(r + rowDelta, c + dc);
+						int newRow = r + rowDelta;
+						int newCol = c + dc;
+						char potentialMove = st.getCell(newRow, newCol);
 						//if the cell we can move to is empty
 						if (potentialMove == '.') {
-							toAdd = BreakthroughMove(r, c, r + rowDelta, c + dc);
+							toAdd = BreakthroughMove(r, c, newRow, newCol);
+							if (newRow == 7 || newRow == 0)
+								toAdd.moveOrderVal += 500;
 							moves.push_back(toAdd);
 						}
 						//cell we can move to has opponent's pieces
 						else if (potentialMove == opponentSide && dc != 0) {
 							toAdd = BreakthroughMove(r, c, r + rowDelta, c + dc);
 							sideToMove == 'W' ? toAdd.isCaptureForW = true : toAdd.isCaptureForB = true;
-							toAdd.moveOrderVal = 100;
+							toAdd.moveOrderVal += 100;
+							if (newRow == 7 || newRow == 0)
+								if (newRow == 7 || newRow == 0)
+									toAdd.moveOrderVal += 500;
 							moves.push_back(toAdd);
 						}
 					}
@@ -512,7 +523,7 @@ AlphaBetaBreakThroughPlayer::orderMoves(std::vector<BreakthroughMove> & moves,
 			BreakthroughMove move = moves[i];
 			if (move.col1() == hashMove.col1() && move.col2() == hashMove.col2()
 				&& move.row1() == hashMove.row1() && move.row2() == hashMove.row2())
-				move.moveOrderVal = 1000;
+				move.moveOrderVal += 1000;
 		}
 	}
 	std::sort(moves.begin(), moves.end(), [](BreakthroughMove & a, BreakthroughMove & b)

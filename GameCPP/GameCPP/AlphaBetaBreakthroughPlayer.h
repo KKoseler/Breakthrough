@@ -28,7 +28,8 @@ public:
 	*/
 	GameMove *getMove(GameState &state, const std::string &lastMv) override;
 
-	std::pair<int, BreakthroughMove> mtd(BreakthroughState & brd, int maxDepth, int guess);
+	std::pair<int, BreakthroughMove> aspiration(BreakthroughState & brd, int maxDepth, int previous);
+
 
 	std::vector<BreakthroughMove> getPossibleMoves(BreakthroughState &st, char sideToMove, int currentDepth);
 

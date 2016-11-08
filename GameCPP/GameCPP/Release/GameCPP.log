@@ -1,9 +1,8 @@
-﻿  AlphaBetaBreakThroughPlayer.cpp
-AlphaBetaBreakThroughPlayer.cpp(510): warning C4018: '<': signed/unsigned mismatch
+﻿  main.cpp
   Generating code
-  2 of 1611 functions ( 0.1%) were compiled, the rest were copied from previous compilation.
+  1 of 1617 functions ( 0.1%) were compiled, the rest were copied from previous compilation.
     0 functions were new in current compilation
-    59 functions had inline decision re-evaluated but remain unchanged
+    4 functions had inline decision re-evaluated but remain unchanged
   Finished generating code
   GameCPP.vcxproj -> C:\Users\Kaan\Documents\GitHub\Breakthrough\GameCPP\Release\GameCPP.exe
   GameCPP.vcxproj -> C:\Users\Kaan\Documents\GitHub\Breakthrough\GameCPP\Release\GameCPP.pdb (Full PDB)
