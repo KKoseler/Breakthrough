@@ -50,9 +50,10 @@ AlphaBetaBreakThroughPlayer::getMove(GameState &state,
 		nodesSearched = 0;
 		lowerBoundCuts = 0;
 		upperBoundCuts = 0;
-		std::pair<int, BreakthroughMove> move = aspiration(st, i, previous);
+		//std::pair<int, BreakthroughMove> move = aspiration(st, i, previous);
+		std::pair<int, BreakthroughMove> move = negaMax(st, i, 0, INT_MIN, INT_MAX);
 		previous = std::get<0>(move);
-		finalMove = new BreakthroughMove(std::get<1>(move));
+		finalMove =  new BreakthroughMove(std::get<1>(move));
 		
 		end = std::chrono::system_clock::now();
 		std::chrono::duration<double> elapsed_seconds = end - start;
@@ -79,8 +80,8 @@ AlphaBetaBreakThroughPlayer::getMove(GameState &state,
 std::pair<int, BreakthroughMove> AlphaBetaBreakThroughPlayer::aspiration(BreakthroughState & brd, int maxDepth, int previous)
 {
 	std::pair<int, BreakthroughMove> toReturn;
-	int alpha = previous - 1;
-	int beta = previous + 1;
+	int alpha = previous - 100;
+	int beta = previous + 100;
 	while (true) {
 		toReturn = negaMax(brd, maxDepth, 0, alpha, beta);
 		if (toReturn.first <= alpha)
@@ -168,7 +169,7 @@ AlphaBetaBreakThroughPlayer::diagonalPath(BreakthroughState &brd, char who, int 
 			rightDiagPath = 9;
 		}
 		// There exists a left and right diagonal path.
-		if ((brd.posOK(row + 1, col - 1) && brd.getCell(row + 1, col - 1) == brd.EMPTYSYM) &&
+		if ((brd.posOK(row + 1, col - 1) && brd.getCell(row + 1, col - 1) == brd.EMPTYSYM) ||
 			(brd.posOK(row + 1, col + 1) && brd.getCell(row + 1, col + 1) == brd.EMPTYSYM)) {
 			twoDiagPath = 10;
 			isTwoDiagPath = true;
@@ -203,7 +204,7 @@ AlphaBetaBreakThroughPlayer::diagonalPath(BreakthroughState &brd, char who, int 
 			rightDiagPath = 9;
 		}
 		// There exists a left and right diagonal path.
-		if ((brd.posOK(row - 1, col - 1) && brd.getCell(row - 1, col - 1) == brd.EMPTYSYM) &&
+		if ((brd.posOK(row - 1, col - 1) && brd.getCell(row - 1, col - 1) == brd.EMPTYSYM) ||
 			(brd.posOK(row - 1, col + 1) && brd.getCell(row - 1, col + 1) == brd.EMPTYSYM)) {
 			twoDiagPath = 10;
 			isTwoDiagPath = true;
@@ -268,7 +269,7 @@ AlphaBetaBreakThroughPlayer::defensivePosition(BreakthroughState &brd, char who,
 		// Determine if there is a three piece triangle block.
 		if ((brd.posOK(row + 1, col - 1) && brd.getCell(row + 1, col - 1) == brd.AWAYSYM)
 			&& (brd.posOK(row + 1, col + 1) && brd.getCell(row + 1, col + 1) == brd.AWAYSYM)) {
-			threePieceBlockScore = 8;
+			threePieceBlockScore = 8 * 20;
 		}
 	}
 	return threePieceBlockScore;
@@ -280,11 +281,11 @@ AlphaBetaBreakThroughPlayer::pieceNearEndPosition(BreakthroughState &brd, char w
 	// add danger for when 2-3 rows away as well. Already pretty late when one away.
 	// Evaluate piece for home system.
 	if (who == brd.HOMESYM) {
-		if ((brd.getCell(row, col) == brd.AWAYSYM) && (row == 1)) {
+		if ((brd.getCell(row, col) == brd.AWAYSYM) && (row <= 2)) {
 			dangerousPosition = 100;
 		}
 	} else { // Evaluate piece for away system.
-		if ((brd.getCell(row, col) == brd.HOMESYM) && (row == brd.ROWS - 2)) {
+		if ((brd.getCell(row, col) == brd.HOMESYM) && (row >= brd.ROWS - 3)) {
 			dangerousPosition = 100;
 		}
 	}
@@ -314,7 +315,7 @@ AlphaBetaBreakThroughPlayer::evaluatePiece(BreakthroughState &brd, char who, int
 			oneStepToWin = 75;
 		}
 	}
-	score = pathScore + blockingScore + threatScore + dangerScore + distanceScore + oneStepToWin;
+	score = pathScore * 10 + blockingScore * 30 + threatScore * 20 + dangerScore * 50 + distanceScore * 5 + oneStepToWin;
 	return score;
 }
 
@@ -363,10 +364,12 @@ AlphaBetaBreakThroughPlayer::evaluateBoard(BreakthroughState &brd) {
 		}
 	}
 	// Count the number of empty columns from Home perspective.
+	//int homeEmptyColumns = 0;
 	int homeEmptyColumns = -numberOfEmptyColumns(brd, brd.HOMESYM)*10;
 	// Count the number of empty columns from Away perspective.
+	//int awayEmptyColumns = 0;
 	int awayEmptyColumns = -numberOfEmptyColumns(brd, brd.AWAYSYM)*10;
-	int total = (evalScore1 + homeEmptyColumns) - (evalScore2 + awayEmptyColumns);
+	int total = (evalScore1 + homeEmptyColumns + homePieces * 500) - (evalScore2 + awayEmptyColumns + awayPieces * 500);
 	//total *= 20;
 	return brd.getCurPlayerSym() == 'W' ? total : -total;
 }
@@ -469,7 +472,15 @@ AlphaBetaBreakThroughPlayer::negaMax(BreakthroughState &brd, int maxDepth, int c
 
 	std::vector<BreakthroughMove> moves = getPossibleMoves(brd, sideToMove, currDepth);
 	moves = orderMoves(moves, *entry, sideToMove);
-
+	/*if (currDepth == 0 && !home) {
+		for (auto move : moves) {
+			BreakthroughState testBoard = brd;
+			testBoard.makeMove(move);
+			std::cout << "BOARD AT DEPTH 0: \n" << testBoard.toDisplayStr() << "\n"
+				<< "EVALUATION OF ABOVE BOARD: " << evaluateBoard(testBoard) << "\n"
+				<< std::endl;
+		}
+	}*/
 	for (BreakthroughMove move : moves) {
 		BreakthroughState newBoard = brd;
 		newBoard.makeMove(move, zobristkeys);
@@ -490,8 +501,14 @@ AlphaBetaBreakThroughPlayer::negaMax(BreakthroughState &brd, int maxDepth, int c
 			bestScore = currentScore;
 			bestMove = move;
 		}
+		/*if (currDepth == 0 && numMoves <= 2) {
+			std::cout << "BOARD AT DEPTH 0: \n" << newBoard.toDisplayStr() << "\n"
+				<< "EVALUATION OF ABOVE BOARD: " << evaluateBoard(newBoard) << "\n"
+				<< "SCORE OF CURRENT BOARD: " << currentScore << "\n" << std::endl;
+		}*/
 		if (bestScore >= beta)
-			return std::make_pair(bestScore, bestMove);
+			//return std::make_pair(bestScore, bestMove);
+			break;
 	}
 
 	entry->setScore(bestScore);
