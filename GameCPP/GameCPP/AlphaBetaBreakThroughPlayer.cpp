@@ -50,8 +50,8 @@ AlphaBetaBreakThroughPlayer::getMove(GameState &state,
 		nodesSearched = 0;
 		lowerBoundCuts = 0;
 		upperBoundCuts = 0;
-		//std::pair<int, BreakthroughMove> move = aspiration(st, i, previous);
-		std::pair<int, BreakthroughMove> move = negaMax(st, i, 0, INT_MIN, INT_MAX);
+		std::pair<int, BreakthroughMove> move = aspiration(st, i, previous);
+		//std::pair<int, BreakthroughMove> move = negaMax(st, i, 0, INT_MIN, INT_MAX);
 		previous = std::get<0>(move);
 		finalMove =  new BreakthroughMove(std::get<1>(move));
 		
@@ -80,8 +80,8 @@ AlphaBetaBreakThroughPlayer::getMove(GameState &state,
 std::pair<int, BreakthroughMove> AlphaBetaBreakThroughPlayer::aspiration(BreakthroughState & brd, int maxDepth, int previous)
 {
 	std::pair<int, BreakthroughMove> toReturn;
-	int alpha = previous - 100;
-	int beta = previous + 100;
+	int alpha = previous - 1;
+	int beta = previous + 1;
 	while (true) {
 		toReturn = negaMax(brd, maxDepth, 0, alpha, beta);
 		if (toReturn.first <= alpha)
@@ -102,32 +102,65 @@ std::vector<BreakthroughMove> AlphaBetaBreakThroughPlayer::getPossibleMoves
 	std::vector<BreakthroughMove> moves;
 	char opponentSide = sideToMove == 'W' ? 'B' : 'W';
 	BreakthroughMove toAdd;
-
-	for (int r = 0; r < st.ROWS; r++) {
-		for (int c = 0; c < st.COLS; c++) {
-			char current = st.getCell(r, c);
-			if (current == sideToMove) { //only get moves if piece is of side to move
-				for (int dc = -1; dc <= +1; dc++) {
-					if (st.posOK(r + rowDelta, c + dc)) {
-						int newRow = r + rowDelta;
-						int newCol = c + dc;
-						char potentialMove = st.getCell(newRow, newCol);
-						//if the cell we can move to is empty
-						if (potentialMove == '.') {
-							toAdd = BreakthroughMove(r, c, newRow, newCol);
-							if (newRow == 7 || newRow == 0)
-								toAdd.moveOrderVal += 500;
-							moves.push_back(toAdd);
-						}
-						//cell we can move to has opponent's pieces
-						else if (potentialMove == opponentSide && dc != 0) {
-							toAdd = BreakthroughMove(r, c, r + rowDelta, c + dc);
-							sideToMove == 'W' ? toAdd.isCaptureForW = true : toAdd.isCaptureForB = true;
-							toAdd.moveOrderVal += 100;
-							if (newRow == 7 || newRow == 0)
-								if (newRow == 7 || newRow == 0)
+	if (sideToMove == 'W') {
+		for (int r = 0; r < st.ROWS; r++) {
+			for (int c = 0; c < st.COLS; c++) {
+				char current = st.getCell(r, c);
+				if (current == sideToMove) { //only get moves if piece is of side to move
+					for (int dc = -1; dc <= +1; dc++) {
+						if (st.posOK(r + rowDelta, c + dc)) {
+							int newRow = r + rowDelta;
+							int newCol = c + dc;
+							char potentialMove = st.getCell(newRow, newCol);
+							//if the cell we can move to is empty
+							if (potentialMove == '.') {
+								toAdd = BreakthroughMove(r, c, newRow, newCol);
+								if (newRow == 7)
 									toAdd.moveOrderVal += 500;
-							moves.push_back(toAdd);
+								moves.push_back(toAdd);
+							}
+							//cell we can move to has opponent's pieces
+							else if (potentialMove == opponentSide && dc != 0) {
+								toAdd = BreakthroughMove(r, c, newRow, newCol);
+								toAdd.isCaptureForW = true;
+								toAdd.moveOrderVal += 100;
+								if (newRow == 7)
+									toAdd.moveOrderVal += 500;
+								moves.push_back(toAdd);
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	//if we are getting black's moves
+	else {
+		for (int r = 7; r >= 0; r--) {
+			for (int c = 7; c >= 0; c--) {
+				char current = st.getCell(r, c);
+				if (current == sideToMove) { //only get moves if piece is of side to move
+					for (int dc = -1; dc <= +1; dc++) {
+						if (st.posOK(r + rowDelta, c + dc)) {
+							int newRow = r + rowDelta;
+							int newCol = c + dc;
+							char potentialMove = st.getCell(newRow, newCol);
+							//if the cell we can move to is empty
+							if (potentialMove == '.') {
+								toAdd = BreakthroughMove(r, c, newRow, newCol);
+								if (newRow == 0)
+									toAdd.moveOrderVal += 1500;
+								moves.push_back(toAdd);
+							}
+							//cell we can move to has opponent's pieces
+							else if (potentialMove == opponentSide && dc != 0) {
+								toAdd = BreakthroughMove(r, c, newRow, newCol);
+								toAdd.isCaptureForW = true;
+								toAdd.moveOrderVal += 100;
+								if (newRow == 0)
+									toAdd.moveOrderVal += 1500;
+								moves.push_back(toAdd);
+							}
 						}
 					}
 				}
